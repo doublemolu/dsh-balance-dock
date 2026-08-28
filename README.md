@@ -78,6 +78,18 @@ Plugin-set changes take effect on restart. After restart the card appears above 
 - Off-peak (16:30–00:30 UTC) applies the 50% discount automatically.
 - CNY figures use a fixed approximate FX rate (7.1). Adjust `PRICES` / `FX_CNY` in `lib/index.js` if needed.
 
+## Security & credentials
+
+Your DeepSeek API key is **never stored, committed, or transmitted by this plugin**:
+
+- The repository contains **no key material** — code only references the credential *name* `DEEPSEEK_API_KEY`. No `.credentials.yaml`, `.env`, or any secret file is committed.
+- At runtime the key is resolved **locally** through the DSH credentials service (`credentials.resolve('DEEPSEEK_API_KEY')`) — the same credential store the chat model uses (normally `~/.dsh/.credentials.yaml` on your machine).
+- The key travels only on your machine: credential store → plugin → child-process **environment variable** (never command-line arguments) → a TLS request to the official `api.deepseek.com` endpoint.
+- The key is **never sent to the browser**, never logged, and never sent to GitHub or any third party.
+- Error messages never include the key (child-process errors are truncated and contain no authorization header).
+
+> Tip: the plugin is only as safe as your key itself. If you ever shared the key elsewhere, rotate it in the DeepSeek platform and update it in **Settings → Models**.
+
 ## Common issues
 
 | Symptom | Cause / fix |

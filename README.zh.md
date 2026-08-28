@@ -78,6 +78,18 @@ pnpm add file:/绝对路径/dsh-balance-dock
 - 谷时段（16:30–00:30 UTC）自动按 5 折计。
 - 人民币按固定近似汇率 7.1 换算。如需调整，修改 `lib/index.js` 中的 `PRICES` / `FX_CNY`。
 
+## 安全性与凭证
+
+你的 DeepSeek API Key **绝不会被本插件存储、提交或对外传输**：
+
+- 仓库中**不含任何密钥内容**——代码只引用凭据*名称* `DEEPSEEK_API_KEY`，不会提交 `.credentials.yaml`、`.env` 或任何密钥文件。
+- 运行时通过 DSH 凭据服务**本地解析**（`credentials.resolve('DEEPSEEK_API_KEY')`）——与聊天模型共用同一个凭据库（通常是你机器上的 `~/.dsh/.credentials.yaml`）。
+- Key 只在你本机流转：凭据库 → 插件 → 子进程**环境变量**（绝不出现在命令行参数中）→ 经 TLS 直连官方 `api.deepseek.com` 接口。
+- Key **不会下发到浏览器**、不会写入日志、更不会发送给 GitHub 或任何第三方。
+- 错误信息绝不含 Key（子进程错误已截断且不包含认证头）。
+
+> 提示：插件本身是安全的，但 Key 的安全性取决于它本身是否泄露过。如果你曾在别处分享过该 Key，请在 DeepSeek 平台重新生成，并在 **设置 → Models** 中更新。
+
 ## 常见问题
 
 | 现象 | 原因 / 解决 |
