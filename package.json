@@ -1,0 +1,31 @@
+{
+  "name": "dsh-balance-dock",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness balance dock: a permanent card above the sidebar Settings showing account balance, per-conversation spend/tokens, a 50-yuan segmented progress bar, a recharge button, and a position-guard popup.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    }
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "balance",
+    "usage",
+    "plugin"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doublemolu/dsh-balance-dock.git"
+  }
+}

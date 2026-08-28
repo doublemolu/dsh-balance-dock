@@ -1,0 +1,92 @@
+# dsh-balance-dock
+
+A permanent DeepSeek Harness (DSH) plugin that shows your DeepSeek account balance, per-conversation spend and token usage, a segmented 50-yuan progress bar, and a recharge shortcut — all in a card docked **above the Settings button** in the left sidebar.
+
+Works with both the wide sidebar (full card) and the collapsed 56px rail (status dot).
+
+## Features
+
+- **Account balance** — total, granted (赠送) and topped-up (充值) amounts, refreshed automatically. Uses the free DeepSeek `GET /user/balance` endpoint — **no tokens consumed**.
+- **Per-conversation spend** — two figures:
+  - `本次用量` (latest single model call): tokens + estimated cost of the most recent call.
+  - `本会话累计` (conversation total): folded from the **durable session log**, so it survives DSH restarts. Cost is estimated per call using the actual model and DeepSeek's official pricing with peak/off-peak discounts.
+  - `本会话累计调用模型次数`: how many times the model was called in this conversation.
+- **50-yuan segmented progress bar** — the track represents your topped-up amount (50 yuan per segment); the green fill shows the remaining balance proportionally. Consumption depletes from the right; the rightmost segment turns **red below ¥15**; when a 50-yuan block is fully used it disappears with a *balloon-pop* effect and the fill smoothly stretches to the new width. Resizes with the sidebar.
+- **Recharge button** — a separate button below the bar that opens the DeepSeek open platform top-up page in a new tab.
+- **Low-balance alerts** — amber warning below ¥10, red alert below ¥3, and a "conversation spend exceeds balance" notice.
+- **Position guard** — the card registers at the top of the sidebar footer; if another plugin registers into the sidebar footer or replaces the whole sidebar, a popup asks whether to allow the displacement or keep the balance card first.
+- **Theme-aware** — uses DSH theme tokens, adapts to light/dark themes.
+
+## Installation
+
+### Prerequisites
+
+- DeepSeek Harness installed and running (web profile).
+- A DeepSeek API key stored in DSH credentials (`DEEPSEEK_API_KEY`) — normally set from **Settings → Models**. The plugin reuses the same credential the chat model uses.
+
+### Option 1 — install from this repo (git)
+
+```bash
+# in your dsh profile directory (~/.dsh/profiles/web)
+dsh plugin --profile web add git+https://github.com/doublemolu/dsh-balance-dock.git
+```
+
+### Option 2 — clone and link locally
+
+```bash
+git clone https://github.com/doublemolu/dsh-balance-dock.git
+cd ~/.dsh/profiles/web
+pnpm add file:/absolute/path/to/dsh-balance-dock
+```
+
+### Register the plugin row
+
+Add the row to your profile composition `~/.dsh/profiles/web/cordis.patch.yml`:
+
+```yaml
+- insert:
+    - id: balance-dock
+      name: dsh-balance-dock
+```
+
+### Restart DSH
+
+Plugin-set changes take effect on restart. After restart the card appears above the Settings button automatically — it is a **permanent** plugin and survives restarts (no manual re-run needed).
+
+## Usage
+
+| Sidebar state | What you see |
+|---|---|
+| Wide sidebar | Full card: balance, granted/topped-up split, latest call usage, conversation total, model-call count, segmented progress bar, recharge button |
+| Collapsed rail (56px) | Small status dot (green / amber / red) with a tooltip summary |
+
+- Balance refreshes every 15s; conversation totals every 8s (cached fold of the session log).
+- Click **充值 ↗** to open <https://platform.deepseek.com/top_up>.
+- Hover the progress bar to see `剩余 ¥xx / 充值 ¥xx`.
+
+## How it works
+
+- **Host half** (`lib/index.js`) registers three same-origin HTTP routes on the DSH web server:
+  - `GET /dsh-balance/balance` — resolves the `DEEPSEEK_API_KEY` credential and calls the official balance endpoint via a child process (no sandboxed fetch available to plugins; uses `node`/`curl`).
+  - `GET /dsh-balance/spend` — live usage from an `llm/stream` interceptor + a durable fold of `assistant/message` events from the session log (per-call model, official pricing, peak/off-peak discount).
+  - `GET /dsh-balance/guard-ask` — position-guard popup via the user-questions service.
+- **Client half** (`client.js`) is a classic-script bundle registered through `window.__ModuleLoader__.load`, rendering the card in the `sidebar.footer.action` slot and polling the routes with the browser's native `fetch`.
+
+### Cost estimation notes
+
+- Prices are estimates based on DeepSeek's official USD per-million-token pricing (`deepseek-chat`, `deepseek-reasoner`; unknown models fall back to chat pricing).
+- Off-peak (16:30–00:30 UTC) applies the 50% discount automatically.
+- CNY figures use a fixed approximate FX rate (7.1). Adjust `PRICES` / `FX_CNY` in `lib/index.js` if needed.
+
+## Common issues
+
+| Symptom | Cause / fix |
+|---|---|
+| Card shows `未配置 DEEPSEEK_API_KEY` | Store the key in **Settings → Models** (or export `DEEPSEEK_API_KEY` in the launching environment) |
+| Card shows `HTTP 401 …` | The stored API key is invalid or expired |
+| No card after install | The plugin row is missing from `cordis.patch.yml`, or DSH was not restarted |
+| Balance never updates | `node` or `curl` not on PATH (both are normally present) |
+
+## License
+
+MIT
