@@ -182,8 +182,10 @@ window.__ModuleLoader__.load({
         React.createElement('span', { className: 'dsbd-k' }, '本次用量'),
         React.createElement('span', { className: 'dsbd-v' },
           (lastTok !== null ? fmtInt(lastTok) + ' tokens' : '…')
-          + (lastCny !== null ? ' · ≈' + sym('CNY') + fmt2(lastCny) : '')
-          + (lastModel ? ' · ' + lastModel : ''))))
+          + (lastCny !== null ? ' · ≈' + sym('CNY') + fmt2(lastCny) : ''))))
+      rows.push(React.createElement('div', { key: 'lastmodel', className: 'dsbd-line' },
+        React.createElement('span', { className: 'dsbd-k' }, '本次使用模型'),
+        React.createElement('span', { className: 'dsbd-v' }, lastModel ? lastModel : '…')))
       rows.push(React.createElement('div', { key: 'totals', className: 'dsbd-line', title: modelDetail || undefined },
         React.createElement('span', { className: 'dsbd-k' }, '本会话累计'),
         React.createElement('span', { className: 'dsbd-v' }, (totalTok !== null ? fmtInt(totalTok) + ' tokens' : '…') + (totalCny !== null ? ' · ≈' + sym('CNY') + fmt2(totalCny) : ''))))

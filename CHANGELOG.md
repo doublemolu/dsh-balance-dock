@@ -2,6 +2,11 @@
 
 All notable changes to dsh-balance-dock.
 
+## [1.1.1] - 2026
+
+### Changed
+- "本次使用模型"拆分为独立一行，显示在"本次用量"下方。
+
 ## [1.1.0] - 2026
 
 ### Added
