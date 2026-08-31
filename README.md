@@ -60,15 +60,43 @@ Plugin-set changes take effect on restart. After restart the card appears above 
 | Wide sidebar | Full card: balance, granted/topped-up split, latest call usage, conversation total, model-call count, segmented progress bar, recharge button |
 | Collapsed rail (56px) | Small status dot (green / amber / red) with a tooltip summary |
 
-- Balance refreshes every 15s; conversation totals every 8s (cached fold of the session log).
+- Balance refreshes every 15s; conversation totals every 8s (cached fold of the session log). Use the ⟳ button on the card to refresh immediately.
 - Click **充值 ↗** to open <https://platform.deepseek.com/top_up>.
-- Hover the progress bar to see `剩余 ¥xx / 充值 ¥xx`.
+- Hover the progress bar to see `剩余 ¥xx / 充值 ¥xx`; hover **本会话累计** to see per-model breakdown.
+- A `▼/▲ ¥xx` indicator next to the balance shows recent changes; the card footer shows the last refresh time.
+
+## Configuration (v1.1.0+)
+
+All tunables live in `$DSH_HOME/dsh-balance-dock.json` (auto-generated with defaults on first run). Edit and save — the plugin picks changes up within ~10s.
+
+```json
+{
+  "segmentBase": 50,
+  "redThreshold": 15,
+  "warnLow": 10,
+  "warnDanger": 3,
+  "fxCny": 7.1,
+  "prices": {
+    "deepseek-chat": { "in": 0.28, "inHit": 0.028, "out": 0.42 },
+    "deepseek-reasoner": { "in": 0.55, "inHit": 0.14, "out": 2.19 }
+  }
+}
+```
+
+| Key | Meaning | Default |
+|---|---|---|
+| `segmentBase` | Progress-bar segment amount (yuan) | 50 |
+| `redThreshold` | Rightmost segment turns red below this (yuan) | 15 |
+| `warnLow` / `warnDanger` | Low-balance alert thresholds (yuan) | 10 / 3 |
+| `fxCny` | Approximate CNY FX rate for cost estimates | 7.1 |
+| `prices` | Per-model USD pricing per million tokens | official |
 
 ## How it works
 
-- **Host half** (`lib/index.js`) registers three same-origin HTTP routes on the DSH web server:
-  - `GET /dsh-balance/balance` — resolves the `DEEPSEEK_API_KEY` credential and calls the official balance endpoint via a child process (no sandboxed fetch available to plugins; uses `node`/`curl`).
+- **Host half** (`lib/index.js`) registers same-origin HTTP routes on the DSH web server:
+  - `GET /dsh-balance/balance` — resolves the `DEEPSEEK_API_KEY` credential and calls the official balance endpoint with Node's native `fetch` (no child process).
   - `GET /dsh-balance/spend` — live usage from an `llm/stream` interceptor + a durable fold of `assistant/message` events from the session log (per-call model, official pricing, peak/off-peak discount).
+  - `GET /dsh-balance/config` — client-facing tunables.
   - `GET /dsh-balance/guard-ask` — position-guard popup via the user-questions service.
 - **Client half** (`client.js`) is a classic-script bundle registered through `window.__ModuleLoader__.load`, rendering the card in the `sidebar.footer.action` slot and polling the routes with the browser's native `fetch`.
 

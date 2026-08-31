@@ -60,15 +60,43 @@ pnpm add file:/绝对路径/dsh-balance-dock
 | 宽侧栏 | 完整卡片：余额、赠金/充值、本次用量、本会话累计、模型调用次数、分段进度条、充值按钮 |
 | 折叠窄轨道 | 状态小圆点（绿/黄/红）+ 悬停摘要 |
 
-- 余额每 15 秒刷新；会话统计每 8 秒刷新（日志折叠有 15s 缓存）。
+- 余额每 15 秒刷新；会话统计每 8 秒刷新（日志折叠有 15s 缓存）。卡片上的 ⟳ 按钮可手动立即刷新。
 - 点击 **充值 ↗** 打开 <https://platform.deepseek.com/top_up>。
-- 悬停进度条可查看 `剩余 ¥xx / 充值 ¥xx`。
+- 悬停进度条可查看 `剩余 ¥xx / 充值 ¥xx`；悬停"本会话累计"可查看按模型拆分的明细。
+- 余额旁的 `▼/▲ ¥xx` 提示最近变化；卡片底部显示最后刷新时间。
+
+## 配置（v1.1.0+）
+
+所有可调项都放在 `$DSH_HOME/dsh-balance-dock.json`（首次运行自动生成默认配置）。改完保存即可，约 10 秒内生效。
+
+```json
+{
+  "segmentBase": 50,
+  "redThreshold": 15,
+  "warnLow": 10,
+  "warnDanger": 3,
+  "fxCny": 7.1,
+  "prices": {
+    "deepseek-chat": { "in": 0.28, "inHit": 0.028, "out": 0.42 },
+    "deepseek-reasoner": { "in": 0.55, "inHit": 0.14, "out": 2.19 }
+  }
+}
+```
+
+| 字段 | 含义 | 默认 |
+|---|---|---|
+| `segmentBase` | 进度条每段金额（元） | 50 |
+| `redThreshold` | 最右段剩余低于该值变红（元） | 15 |
+| `warnLow` / `warnDanger` | 低余额提醒阈值（元） | 10 / 3 |
+| `fxCny` | 人民币近似汇率（费用估算用） | 7.1 |
+| `prices` | 各模型美元价目（每百万 token） | 官方 |
 
 ## 工作原理
 
-- **Host 半边**（`lib/index.js`）在 DSH web server 上注册三条同源 HTTP 路由：
-  - `GET /dsh-balance/balance` — 解析 `DEEPSEEK_API_KEY` 凭据，通过子进程调用官方余额接口（插件环境无 fetch，使用 `node`/`curl`）。
+- **Host 半边**（`lib/index.js`）在 DSH web server 上注册同源 HTTP 路由：
+  - `GET /dsh-balance/balance` — 解析 `DEEPSEEK_API_KEY` 凭据，用 **Node 原生 fetch** 直接调用官方余额接口（无子进程）。
   - `GET /dsh-balance/spend` — 实时用量来自 `llm/stream` 拦截器；会话累计从持久日志的 `assistant/message` 事件折叠（按调用真实模型 + 官方价目表 + 峰谷折扣）。
+  - `GET /dsh-balance/config` — 客户端所需可配置项。
   - `GET /dsh-balance/guard-ask` — 位置守护弹窗（user-questions 服务）。
 - **Client 半边**（`client.js`）为经典脚本 bundle（`window.__ModuleLoader__.load`），把卡片渲染进 `sidebar.footer.action` 槽位，用浏览器原生 `fetch` 轮询上述路由。
 
