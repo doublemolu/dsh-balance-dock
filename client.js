@@ -381,34 +381,35 @@ window.__ModuleLoader__.load({
           checked: !!(form.showRows && form.showRows[key]),
           onChange: (e) => setShowRow(key, e.target.checked),
         }))
+      const modalT = (form && form.lang && I18N[form.lang]) ? I18N[form.lang] : I18N['zh-CN'] // 弹窗语言跟随表单实时预览
       const modal = settingsOpen && form
         ? React.createElement('div', {
           className: 'dsbd-overlay',
           onClick: (e) => { if (e.target === e.currentTarget) setSettingsOpen(false) },
         },
         React.createElement('div', { className: 'dsbd-modal', onClick: (e) => e.stopPropagation() },
-          React.createElement('div', { className: 'dsbd-modal-title' }, t.modalTitle),
-          selectField(t.fLang, form.lang || 'zh-CN', LANGUAGE_OPTIONS, (v) => setForm((f) => ({ ...f, lang: v, currency: LANG_CURRENCY[v] || f.currency }))),
-          selectField(t.fCurrency, form.currency || 'CNY', currencyOptionsFor(form.lang || 'zh-CN'), (v) => setField('currency', v)),
-          numField(t.fSegment + ' segmentBase', form.segmentBase, (e) => setField('segmentBase', parseFloat(e.target.value) || 0)),
-          numField(t.fRed + ' redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
-          numField(t.fWarnLow + ' warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
-          numField(t.fWarnDanger + ' warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
+          React.createElement('div', { className: 'dsbd-modal-title' }, modalT.modalTitle),
+          selectField(modalT.fLang, form.lang || 'zh-CN', LANGUAGE_OPTIONS, (v) => setForm((f) => ({ ...f, lang: v, currency: LANG_CURRENCY[v] || f.currency }))),
+          selectField(modalT.fCurrency, form.currency || 'CNY', currencyOptionsFor(form.lang || 'zh-CN'), (v) => setField('currency', v)),
+          numField(modalT.fSegment + ' segmentBase', form.segmentBase, (e) => setField('segmentBase', parseFloat(e.target.value) || 0)),
+          numField(modalT.fRed + ' redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
+          numField(modalT.fWarnLow + ' warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
+          numField(modalT.fWarnDanger + ' warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
           React.createElement('div', { key: 'fxauto', className: 'dsbd-field' },
-            React.createElement('span', { className: 'dsbd-field-k' }, t.fxAuto),
+            React.createElement('span', { className: 'dsbd-field-k' }, modalT.fxAuto),
             React.createElement('span', { className: 'dsbd-v', style: { fontSize: '11px' } },
               rates && rates.rates && form && rates.rates[form.currency || 'CNY']
-                ? ('1 CNY ≈ ' + rates.rates[form.currency || 'CNY'].toFixed(4) + ' ' + (form.currency || 'CNY') + ' · ' + (rates.source === 'live' ? t.fxLive : t.fxFallback))
+                ? ('1 CNY ≈ ' + rates.rates[form.currency || 'CNY'].toFixed(4) + ' ' + (form.currency || 'CNY') + ' · ' + (rates.source === 'live' ? modalT.fxLive : modalT.fxFallback))
                 : '…')),
-          React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, t.showSection),
-          rowToggle('last', t.lastUsage),
-          rowToggle('lastModel', t.lastModel),
-          rowToggle('total', t.total),
-          rowToggle('calls', t.calls),
+          React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, modalT.showSection),
+          rowToggle('last', modalT.lastUsage),
+          rowToggle('lastModel', modalT.lastModel),
+          rowToggle('total', modalT.total),
+          rowToggle('calls', modalT.calls),
           React.createElement('div', { className: 'dsbd-modal-foot' },
-            React.createElement('button', { type: 'button', className: 'dsbd-btn reset', onClick: resetSettings }, t.reset),
-            React.createElement('button', { type: 'button', className: 'dsbd-btn', onClick: () => setSettingsOpen(false) }, t.cancel),
-            React.createElement('button', { type: 'button', className: 'dsbd-btn primary', onClick: saveSettings }, t.confirm))))
+            React.createElement('button', { type: 'button', className: 'dsbd-btn reset', onClick: resetSettings }, modalT.reset),
+            React.createElement('button', { type: 'button', className: 'dsbd-btn', onClick: () => setSettingsOpen(false) }, modalT.cancel),
+            React.createElement('button', { type: 'button', className: 'dsbd-btn primary', onClick: saveSettings }, modalT.confirm))))
         : null
 
       return React.createElement(React.Fragment, null,

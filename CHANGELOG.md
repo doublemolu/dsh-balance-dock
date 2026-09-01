@@ -2,6 +2,11 @@
 
 All notable changes to dsh-balance-dock.
 
+## [1.2.5] - 2026
+
+### Changed
+- 设置弹窗内的文字（标题/字段/按钮/勾选）**跟随所选语言实时预览**；实际 UI 在点击"确认"后才生效。
+
 ## [1.2.4] - 2026
 
 ### Changed
