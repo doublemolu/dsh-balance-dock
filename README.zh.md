@@ -84,9 +84,13 @@ pnpm add file:/绝对路径/dsh-costometer
   "warnLow": 10,
   "warnDanger": 3,
   "fxCny": 7.1,
+  "lang": "zh-CN",
+  "currency": "CNY",
   "prices": {
-    "deepseek-chat": { "in": 0.28, "inHit": 0.028, "out": 0.42 },
-    "deepseek-reasoner": { "in": 0.55, "inHit": 0.14, "out": 2.19 }
+    "deepseek-v4-flash": { "peak": { "in": 3.0, "inHit": 0.10, "out": 9.0 }, "off": { "in": 1.5, "inHit": 0.05, "out": 4.5 } },
+    "deepseek-v4": { "peak": { "in": 3.0, "inHit": 0.10, "out": 9.0 }, "off": { "in": 1.5, "inHit": 0.05, "out": 4.5 } },
+    "deepseek-chat": { "peak": { "in": 2.0, "inHit": 0.20, "out": 3.0 }, "off": { "in": 1.0, "inHit": 0.10, "out": 1.5 } },
+    "deepseek-reasoner": { "peak": { "in": 4.0, "inHit": 1.0, "out": 16.0 }, "off": { "in": 2.0, "inHit": 0.5, "out": 8.0 } }
   }
 }
 ```
@@ -96,7 +100,11 @@ pnpm add file:/绝对路径/dsh-costometer
 | `segmentBase` | 进度条每段金额（元） | 50 |
 | `redThreshold` | 最右段剩余低于该值变红（元） | 15 |
 | `warnLow` / `warnDanger` | 低余额提醒阈值（元） | 10 / 3 |
-| `fxCny` | 人民币近似汇率（费用估算用） | 7.1 |
+| `fxCny` | 仅用于费用估算的次要美元换算（estUsd）；费用本身直接按人民币计价 | 7.1 |
+| `lang` | 界面语言：`zh-CN` / `zh-TW` / `en-US` / `en-GB` / `de` / `ja` / `ko` / `ru` | zh-CN |
+| `currency` | 显示货币：`CNY` / `TWD` / `USD` / `GBP` / `EUR` / `JPY` / `KRW` / `RUB`（对人民币自动汇率） | CNY |
+| `rates` | 内置兜底汇率（1 人民币兑各货币）；实时汇率从免费 API 自动拉取（多端点兜底）、6 小时缓存、**零 token 消耗** | 内置 |
+| `prices` | 各模型官方**人民币峰谷价**（`peak` / `off` 两套，每百万 token） | 官方 |
 | `prices` | 各模型美元价目（每百万 token） | 官方 |
 
 ## 工作原理
@@ -110,9 +118,9 @@ pnpm add file:/绝对路径/dsh-costometer
 
 ### 费用估算说明
 
-- 价格基于 DeepSeek 官方美元/百万 token 价目表（`deepseek-chat`、`deepseek-reasoner`；未知模型按 chat 价）。
-- 谷时段（16:30–00:30 UTC）自动按 5 折计。
-- 人民币按固定近似汇率 7.1 换算。如需调整，修改 `lib/index.js` 中的 `PRICES` / `FX_CNY`。
+- 费用**直接按人民币计价**：使用 DeepSeek 官方**人民币峰谷价目表**（`deepseek-v4-flash` / `deepseek-v4` / `deepseek-chat` / `deepseek-reasoner`，每百万 token；未知模型按 chat 价）。
+- 每次调用按**时间戳**自动选择峰/谷价（谷时段 16:30–00:30 UTC）。
+- `fxCny` 不是计价汇率——它只用于换算次要的美元估算值（estUsd）。要调整估算，修改配置文件中的 `prices` 段。
 
 ## 安全性与凭证
 

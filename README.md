@@ -84,9 +84,13 @@ All tunables live in `$DSH_HOME/dsh-costometer.json` (auto-generated with defaul
   "warnLow": 10,
   "warnDanger": 3,
   "fxCny": 7.1,
+  "lang": "zh-CN",
+  "currency": "CNY",
   "prices": {
-    "deepseek-chat": { "in": 0.28, "inHit": 0.028, "out": 0.42 },
-    "deepseek-reasoner": { "in": 0.55, "inHit": 0.14, "out": 2.19 }
+    "deepseek-v4-flash": { "peak": { "in": 3.0, "inHit": 0.10, "out": 9.0 }, "off": { "in": 1.5, "inHit": 0.05, "out": 4.5 } },
+    "deepseek-v4": { "peak": { "in": 3.0, "inHit": 0.10, "out": 9.0 }, "off": { "in": 1.5, "inHit": 0.05, "out": 4.5 } },
+    "deepseek-chat": { "peak": { "in": 2.0, "inHit": 0.20, "out": 3.0 }, "off": { "in": 1.0, "inHit": 0.10, "out": 1.5 } },
+    "deepseek-reasoner": { "peak": { "in": 4.0, "inHit": 1.0, "out": 16.0 }, "off": { "in": 2.0, "inHit": 0.5, "out": 8.0 } }
   }
 }
 ```
@@ -96,11 +100,11 @@ All tunables live in `$DSH_HOME/dsh-costometer.json` (auto-generated with defaul
 | `segmentBase` | Progress-bar segment amount (yuan) | 50 |
 | `redThreshold` | Rightmost segment turns red below this (yuan) | 15 |
 | `warnLow` / `warnDanger` | Low-balance alert thresholds (yuan) | 10 / 3 |
-| `fxCny` | Approximate CNY FX rate for cost estimates | 7.1 |
-| `lang` | UI language: `zh-CN` / `zh-TW` / `en` / `de` / `ja` / `ko` / `ru` | zh-CN |
-| `currency` | Display currency: `CNY` / `TWD` / `USD` / `EUR` / `JPY` / `KRW` / `RUB` (auto-updated rates against CNY) | CNY |
-| `rates` | Built-in fallback exchange rates (1 CNY → currency); live rates auto-fetch from a free API, 6h cache, **zero token cost** | built-in |
-| `prices` | Per-model USD pricing per million tokens | official |
+| `fxCny` | Only used for the secondary approximate **USD** figure of cost estimates (estUsd); costs themselves are priced directly in CNY | 7.1 |
+| `lang` | UI language: `zh-CN` / `zh-TW` / `en-US` / `en-GB` / `de` / `ja` / `ko` / `ru` | zh-CN |
+| `currency` | Display currency: `CNY` / `TWD` / `USD` / `GBP` / `EUR` / `JPY` / `KRW` / `RUB` (auto-updated rates against CNY) | CNY |
+| `rates` | Built-in fallback exchange rates (1 CNY → currency); live rates auto-fetch from a free API (multi-endpoint fallback), 6h cache, **zero token cost** | built-in |
+| `prices` | Official **CNY peak/off-peak** pricing per model, per million tokens (`peak` / `off` sets) | official |
 
 ## How it works
 
@@ -113,9 +117,9 @@ All tunables live in `$DSH_HOME/dsh-costometer.json` (auto-generated with defaul
 
 ### Cost estimation notes
 
-- Prices are estimates based on DeepSeek's official USD per-million-token pricing (`deepseek-chat`, `deepseek-reasoner`; unknown models fall back to chat pricing).
-- Off-peak (16:30–00:30 UTC) applies the 50% discount automatically.
-- CNY figures use a fixed approximate FX rate (7.1). Adjust `PRICES` / `FX_CNY` in `lib/index.js` if needed.
+- Costs are estimated **directly in CNY** using DeepSeek's official **CNY peak/off-peak pricing** per million tokens (`deepseek-v4-flash` / `deepseek-v4` / `deepseek-chat` / `deepseek-reasoner`; unknown models fall back to `deepseek-chat`).
+- Peak vs off-peak is selected per call by its timestamp (off-peak 16:30–00:30 UTC).
+- `fxCny` is **not** the pricing currency — it only produces the secondary approximate USD figure (estUsd). Adjust the `prices` section in the config file to tune the estimate.
 
 ## Security & credentials
 
