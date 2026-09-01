@@ -20,13 +20,11 @@ window.__ModuleLoader__.load({
       '.dsbd-total{font-size:17px;font-weight:700;line-height:1.3;color:#f5c518}',
       '.dsbd-total .dsbd-curr{color:#f5c518}',
       '.dsbd-curr{font-size:12px;font-weight:600;margin-right:2px}',
-      '.dsbd-gold{color:#f5c518;font-weight:600}',
       '.dsbd-delta{font-size:11px;font-weight:600;margin-left:6px}',
       '.dsbd-delta.up{color:var(--dsw-alias-state-success-primary)}',
       '.dsbd-delta.down{color:var(--dsw-alias-state-error-primary)}',
       '.dsbd-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px}',
       '.dsbd-k{color:var(--dsw-alias-label-secondary);font-size:11px}',
-      '.dsbd-k.blue{color:var(--dsw-static-deepseek-450,#5686fe);font-weight:700}',
       '.dsbd-v{font-size:12px;font-weight:500}',
       '.dsbd-div{height:1px;background:var(--dsw-alias-border-l1);margin:5px 0}',
       '.dsbd-note{font-size:11px}',
@@ -74,6 +72,18 @@ window.__ModuleLoader__.load({
       'ko': { title: 'DeepSeek 잔액', refresh: '새로고침', fail: '잔액 조회 실패', grantTop: '보너스 / 충전', lastUsage: '최근 사용량', lastModel: '최근 모델', total: '세션 누적', calls: '모델 호출 횟수', times: '회', warnLow: '잔액이 낮습니다. 충전을 권장', warnDanger: '잔액이 매우 낮습니다. 곧 충전하세요', overrun: '세션 비용이 잔액을 초과', updated: '업데이트', recharge: '충전', settings: '설정', loading: '잔액 로딩 중…', segPer: '세그먼트당', modalTitle: '잔액 플러그인 설정', fSegment: '세그먼트 금액', fRed: '빨간색 임계값', fWarnLow: '노란색 경고', fWarnDanger: '빨간색 경고', fLang: '언어', fCurrency: '통화', showSection: '표시 행', reset: '기본값 복원', cancel: '취소', confirm: '확인', remaining: '남은', topped: '충전', fx: '환율' },
       'ru': { title: 'Баланс DeepSeek', refresh: 'Обновить', fail: 'Ошибка запроса баланса', grantTop: 'Бонус / Пополнение', lastUsage: 'Последнее использование', lastModel: 'Последняя модель', total: 'Итого за сессию', calls: 'Вызовы моделей', times: 'вызовов', warnLow: 'Баланс низкий, пополните', warnDanger: 'Баланс критически низкий, пополните скорее', overrun: 'Расходы сессии превышают баланс', updated: 'Обновлено', recharge: 'Пополнить', settings: 'Настройки', loading: 'Загрузка баланса…', segPer: 'за сегмент', modalTitle: 'Настройки плагина', fSegment: 'Сумма сегмента', fRed: 'Красный порог', fWarnLow: 'Жёлтое предупреждение', fWarnDanger: 'Красное предупреждение', fLang: 'Язык', fCurrency: 'Валюта', showSection: 'Показывать строки', reset: 'Сбросить', cancel: 'Отмена', confirm: 'Подтвердить', remaining: 'Остаток', topped: 'Пополнение', fx: 'Курс' },
     }
+    // 充值相关文案（v1.2.2 新增）
+    const I18N_EXTRA = {
+      'zh-CN': { grantTop: '赠金', lastRecharge: '最近充值', totalRecharge: '累计充值', noRecord: '暂无充值记录' },
+      'zh-TW': { grantTop: '贈金', lastRecharge: '最近充值', totalRecharge: '累計充值', noRecord: '暫無充值記錄' },
+      'en': { grantTop: 'Grant', lastRecharge: 'Last top-up', totalRecharge: 'Total top-ups', noRecord: 'No top-ups recorded' },
+      'de': { grantTop: 'Bonus', lastRecharge: 'Letzte Aufladung', totalRecharge: 'Gesamt Aufladung', noRecord: 'Keine Aufladung erfasst' },
+      'ja': { grantTop: '特典', lastRecharge: '最近のチャージ', totalRecharge: '累計チャージ', noRecord: 'チャージ記録なし' },
+      'ko': { grantTop: '보너스', lastRecharge: '최근 충전', totalRecharge: '누적 충전', noRecord: '충전 기록 없음' },
+      'ru': { grantTop: 'Бонус', lastRecharge: 'Последнее пополнение', totalRecharge: 'Всего пополнений', noRecord: 'Нет записей' },
+    }
+    for (const k of Object.keys(I18N)) Object.assign(I18N[k], I18N_EXTRA[k] || {})
+
     const LANG_CURRENCY = { 'zh-CN': 'CNY', 'zh-TW': 'TWD', en: 'USD', de: 'EUR', ja: 'JPY', ko: 'KRW', ru: 'RUB' }
     const LOCALES = { 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', en: 'en-US', de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', ru: 'ru-RU' }
     const CURRENCY_OPTIONS = [['CNY', 'CNY ¥'], ['TWD', 'TWD NT$'], ['USD', 'USD $'], ['EUR', 'EUR €'], ['JPY', 'JPY ¥'], ['KRW', 'KRW ₩'], ['RUB', 'RUB ₽']]
@@ -83,6 +93,7 @@ window.__ModuleLoader__.load({
     const fmtInt = (v) => Math.round(v).toLocaleString('en-US')
     const pad2 = (n) => (n < 10 ? '0' : '') + n
     const clock = (t) => { const d = new Date(t); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) }
+    const fmtDate = (t) => { const d = new Date(t); return pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) }
     let currentLang = 'zh-CN' // 供位置守护弹窗使用（由 Dock 同步）
 
     function Dock(props) {
@@ -101,6 +112,7 @@ window.__ModuleLoader__.load({
       const [defaults, setDefaults] = React.useState(null)
       const [spinning, setSpinning] = React.useState(false)
       const [fetchErr, setFetchErr] = React.useState(null)
+      const [recharge, setRecharge] = React.useState(null)
       const prevBal = React.useRef(null)
 
       const lang = cfg && cfg.lang ? cfg.lang : 'zh-CN'
@@ -141,6 +153,14 @@ window.__ModuleLoader__.load({
         fetch('/dsh-balance/rates')
           .then((r) => r.json())
           .then((r) => { if (alive && r && r.ok === true) setRates(r) })
+          .catch(() => {})
+        return () => { alive = false }
+      }, [refresh])
+      React.useEffect(() => {
+        let alive = true
+        fetch('/dsh-balance/recharge')
+          .then((r) => r.json())
+          .then((r) => { if (alive && r && r.ok === true) setRecharge(r) })
           .catch(() => {})
         return () => { alive = false }
       }, [refresh])
@@ -278,25 +298,29 @@ window.__ModuleLoader__.load({
           ? React.createElement('span', { className: 'dsbd-delta ' + (delta.amount >= 0 ? 'up' : 'down') },
             (delta.amount >= 0 ? '▲' : '▼') + ' ' + moneyFull(Math.abs(delta.amount)))
           : null))
-      rows.push(React.createElement('div', { key: 'sub', className: 'dsbd-line' },
+      rows.push(React.createElement('div', { key: 'grant', className: 'dsbd-line' },
         React.createElement('span', { className: 'dsbd-k' }, t.grantTop),
-        React.createElement('span', { className: 'dsbd-v dsbd-gold' }, ok
-          ? moneySmall(balance.granted) + ' / ' + moneySmall(balance.toppedUp)
-          : (balance && balance.error) ? t.fail : '…')))
+        React.createElement('span', { className: 'dsbd-v' }, ok ? moneySmall(balance.granted) : (balance && balance.error ? t.fail : '…'))))
+      rows.push(React.createElement('div', { key: 'lastrc', className: 'dsbd-line' },
+        React.createElement('span', { className: 'dsbd-k' }, t.lastRecharge),
+        React.createElement('span', { className: 'dsbd-v' }, recharge && recharge.last ? (fmtDate(recharge.last.at) + ' · ' + moneyFull(recharge.last.amount)) : t.noRecord)))
+      rows.push(React.createElement('div', { key: 'totalrc', className: 'dsbd-line' },
+        React.createElement('span', { className: 'dsbd-k' }, t.totalRecharge),
+        React.createElement('span', { className: 'dsbd-v' }, recharge ? moneyFull(recharge.total) : '…')))
       rows.push(React.createElement('div', { key: 'div', className: 'dsbd-div' }))
       if (showRows.last) rows.push(React.createElement('div', { key: 'last', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k blue' }, t.lastUsage),
+        React.createElement('span', { className: 'dsbd-k' }, t.lastUsage),
         React.createElement('span', { className: 'dsbd-v' },
           (lastTok !== null ? fmtInt(lastTok) + ' tokens' : '…')
           + (lastCny !== null ? ' · ' + moneySmall(lastCny) : ''))))
       if (showRows.lastModel) rows.push(React.createElement('div', { key: 'lastmodel', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k blue' }, t.lastModel),
+        React.createElement('span', { className: 'dsbd-k' }, t.lastModel),
         React.createElement('span', { className: 'dsbd-v' }, lastModel ? lastModel : '…')))
       if (showRows.total) rows.push(React.createElement('div', { key: 'totals', className: 'dsbd-line', title: modelDetail || undefined },
-        React.createElement('span', { className: 'dsbd-k blue' }, t.total),
+        React.createElement('span', { className: 'dsbd-k' }, t.total),
         React.createElement('span', { className: 'dsbd-v' }, (totalTok !== null ? fmtInt(totalTok) + ' tokens' : '…') + (totalCny !== null ? ' · ' + moneySmall(totalCny) : ''))))
       if (showRows.calls) rows.push(React.createElement('div', { key: 'calls', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k blue' }, t.calls),
+        React.createElement('span', { className: 'dsbd-k' }, t.calls),
         React.createElement('span', { className: 'dsbd-v' }, totalCalls > 0 ? fmtInt(totalCalls) + ' ' + t.times : '…')))
       if (warnText) rows.push(React.createElement('div', { key: 'warn', className: 'dsbd-note warn' }, warnText))
       if (overrun) rows.push(React.createElement('div', { key: 'over', className: 'dsbd-note err' }, t.overrun))
