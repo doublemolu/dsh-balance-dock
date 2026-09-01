@@ -32,8 +32,26 @@ window.__ModuleLoader__.load({
       '.dsbd-meta{color:var(--dsw-alias-label-secondary);font-size:10px;text-align:right}',
       '.dsbd-rail{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:22px;height:22px;margin:4px 2px;border:1.5px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-layer-1)}',
       '.dsbd-rail .dsbd-dot{width:10px;height:10px}',
-      '.dsbd-recharge-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;margin-top:8px;padding:7px 10px;border:1.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--dsw-alias-brand-primary);text-align:center}',
+      '.dsbd-actions{display:flex;gap:8px;margin-top:8px}',
+      '.dsbd-recharge-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--dsw-alias-brand-primary);text-align:center}',
       '.dsbd-recharge-btn:hover{background:var(--dsw-alias-bg-layer-2)}',
+      '.dsbd-settings-btn{display:flex;align-items:center;justify-content:center;gap:4px;flex:none;padding:7px 10px;border:1.5px solid var(--dsw-alias-border-l1);border-radius:10px;background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600}',
+      '.dsbd-settings-btn:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}',
+      '@keyframes dsbd-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
+      '.dsbd-refresh.spin{animation:dsbd-spin .6s ease-out}',
+      '.dsbd-overlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}',
+      '.dsbd-modal{width:min(400px,92vw);max-height:82vh;overflow:auto;background:var(--dsw-alias-bg-overlay);border:1.5px solid var(--dsw-alias-border-l2);border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:10px}',
+      '.dsbd-modal-title{font-size:14px;font-weight:700}',
+      '.dsbd-field{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}',
+      '.dsbd-field-k{color:var(--dsw-alias-label-secondary)}',
+      '.dsbd-input{width:90px;padding:4px 8px;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-size:12px;font-family:inherit}',
+      '.dsbd-price-group{border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}',
+      '.dsbd-price-head{font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary)}',
+      '.dsbd-modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}',
+      '.dsbd-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);cursor:pointer;font-size:12px;font-family:inherit}',
+      '.dsbd-btn:hover{background:var(--dsw-alias-bg-layer-2)}',
+      '.dsbd-btn.primary{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary);font-weight:600}',
+      '.dsbd-btn.reset{color:var(--dsw-alias-state-warn-primary)}',
       '.dsbd-track{position:relative;width:100%;height:10px;border-radius:5px;background:var(--dsw-alias-border-l1);overflow:hidden}',
       '.dsbd-fill{position:relative;display:flex;gap:3px;height:100%;transition:width .6s cubic-bezier(.4,0,.2,1)}',
       '.dsbd-fill-seg{flex:1 1 0;min-width:2px;height:100%;border-radius:2px;background:var(--dsw-alias-border-l1);overflow:hidden}',
@@ -59,14 +77,63 @@ window.__ModuleLoader__.load({
       const [updatedAt, setUpdatedAt] = React.useState(null)
       const [delta, setDelta] = React.useState(null)
       const [refresh, setRefresh] = React.useState(0)
+      const [settingsOpen, setSettingsOpen] = React.useState(false)
+      const [form, setForm] = React.useState(null)
+      const [defaults, setDefaults] = React.useState(null)
+      const [spinning, setSpinning] = React.useState(false)
       const prevBal = React.useRef(null)
 
       // 配置
       React.useEffect(() => {
         let alive = true
-        fetch('/dsh-balance/config').then((r) => r.json()).then((r) => { if (alive) setCfg(r) }).catch(() => {})
+        fetch('/dsh-balance/config')
+          .then((r) => r.json())
+          .then((r) => {
+            if (!alive) return
+            if (r && r.config) setCfg(r.config)
+            if (r && r.defaults) setDefaults(r.defaults)
+          })
+          .catch(() => {})
         return () => { alive = false }
       }, [])
+
+      // ── 设置弹窗：打开时拉取最新配置 ──
+      const openSettings = () => {
+        fetch('/dsh-balance/config')
+          .then((r) => r.json())
+          .then((r) => { if (r && r.config) setForm(r.config) })
+          .catch(() => {})
+        setSettingsOpen(true)
+      }
+      const setField = (key, value) => { setForm((f) => ({ ...f, [key]: value })) }
+      const setPrice = (model, key, value) => {
+        setForm((f) => {
+          const m = (f && f.prices && f.prices[model]) ? f.prices[model] : {}
+          return { ...f, prices: { ...((f && f.prices) || {}), [model]: { ...m, [key]: value } } }
+        })
+      }
+      const saveSettings = () => {
+        if (form === null) return
+        fetch('/dsh-balance/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+          .then((r) => r.json())
+          .then((r) => {
+            if (r && r.ok === true) {
+              setSettingsOpen(false)
+              setCfg(r.config)
+              setRefresh((x) => x + 1)
+            }
+          })
+          .catch(() => {})
+      }
+      const resetSettings = () => { if (defaults) setForm(JSON.parse(JSON.stringify(defaults))) }
+      const onRefreshClick = () => {
+        setSpinning(true)
+        setRefresh((r) => r + 1)
+      }
 
       // 余额轮询（15s）+ 手动刷新
       React.useEffect(() => {
@@ -212,26 +279,64 @@ window.__ModuleLoader__.load({
           burstId > 0
             ? React.createElement('div', { key: 'burst' + burstId, className: 'dsbd-burst', onAnimationEnd: () => setBurstId(0) })
             : null)))
-      rows.push(React.createElement('button', {
-        key: 'recharge',
-        type: 'button',
-        className: 'dsbd-recharge-btn',
-        title: '前往 DeepSeek 开放平台充值',
-        onClick: () => { window.open('https://platform.deepseek.com/top_up', '_blank', 'noopener') },
-      }, '充值 ↗'))
+      rows.push(React.createElement('div', { key: 'actions', className: 'dsbd-actions' },
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsbd-recharge-btn',
+          title: '前往 DeepSeek 开放平台充值',
+          onClick: () => { window.open('https://platform.deepseek.com/top_up', '_blank', 'noopener') },
+        }, '充值 ↗'),
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsbd-settings-btn',
+          title: '插件设置',
+          onClick: openSettings,
+        }, '设置', ' ⚙')))
 
-      return React.createElement('div', { className: 'dsbd-dock' },
-        React.createElement('div', { className: 'dsbd-head' },
-          React.createElement('div', { className: 'dsbd-head-left' },
-            React.createElement('span', { className: 'dsbd-title' }, 'DeepSeek 余额'),
-            React.createElement('button', {
-              type: 'button',
-              className: 'dsbd-refresh',
-              title: '手动刷新',
-              onClick: () => setRefresh((r) => r + 1),
-            }, '⟳')),
-          React.createElement('span', { className: 'dsbd-dot ' + status })),
-        rows)
+      // ── 设置弹窗 ──
+      const numField = (label, value, onChange) => React.createElement('div', { key: label, className: 'dsbd-field' },
+        React.createElement('span', { className: 'dsbd-field-k' }, label),
+        React.createElement('input', { type: 'number', step: 'any', className: 'dsbd-input', value: value, onChange: onChange }))
+      const priceFields = (model) => React.createElement('div', { key: model, className: 'dsbd-price-group' },
+        React.createElement('div', { className: 'dsbd-price-head' }, model),
+        numField('输入 in', form && form.prices && form.prices[model] ? form.prices[model].in : 0, (e) => setPrice(model, 'in', parseFloat(e.target.value) || 0)),
+        numField('缓存命中 inHit', form && form.prices && form.prices[model] ? form.prices[model].inHit : 0, (e) => setPrice(model, 'inHit', parseFloat(e.target.value) || 0)),
+        numField('输出 out', form && form.prices && form.prices[model] ? form.prices[model].out : 0, (e) => setPrice(model, 'out', parseFloat(e.target.value) || 0)))
+      const modal = settingsOpen && form
+        ? React.createElement('div', {
+          className: 'dsbd-overlay',
+          onClick: (e) => { if (e.target === e.currentTarget) setSettingsOpen(false) },
+        },
+        React.createElement('div', { className: 'dsbd-modal', onClick: (e) => e.stopPropagation() },
+          React.createElement('div', { className: 'dsbd-modal-title' }, '余额插件设置'),
+          numField('每段金额 segmentBase', form.segmentBase, (e) => setField('segmentBase', parseFloat(e.target.value) || 0)),
+          numField('红色阈值 redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
+          numField('黄色警告 warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
+          numField('红色警告 warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
+          numField('汇率 fxCny', form.fxCny, (e) => setField('fxCny', parseFloat(e.target.value) || 0)),
+          priceFields('deepseek-chat'),
+          priceFields('deepseek-reasoner'),
+          React.createElement('div', { className: 'dsbd-modal-foot' },
+            React.createElement('button', { type: 'button', className: 'dsbd-btn reset', onClick: resetSettings }, '恢复默认'),
+            React.createElement('button', { type: 'button', className: 'dsbd-btn', onClick: () => setSettingsOpen(false) }, '取消'),
+            React.createElement('button', { type: 'button', className: 'dsbd-btn primary', onClick: saveSettings }, '确认'))))
+        : null
+
+      return React.createElement(React.Fragment, null,
+        React.createElement('div', { className: 'dsbd-dock' },
+          React.createElement('div', { className: 'dsbd-head' },
+            React.createElement('div', { className: 'dsbd-head-left' },
+              React.createElement('span', { className: 'dsbd-title' }, 'DeepSeek 余额'),
+              React.createElement('button', {
+                type: 'button',
+                className: 'dsbd-refresh' + (spinning ? ' spin' : ''),
+                title: '手动刷新',
+                onClick: onRefreshClick,
+                onAnimationEnd: () => setSpinning(false),
+              }, '⟳')),
+            React.createElement('span', { className: 'dsbd-dot ' + status })),
+          rows),
+        modal)
     }
 
     const plugin = {
