@@ -1,7 +1,7 @@
 {
-  "name": "dsh-balance-dock",
-  "version": "1.2.5",
-  "description": "DeepSeek Harness balance dock: a permanent card above the sidebar Settings showing account balance, per-conversation spend/tokens, a 50-yuan segmented progress bar, a recharge button, and a position-guard popup.",
+  "name": "dsh-costometer",
+  "version": "1.2.6",
+  "description": "花知多少 · Cost-O-Meter — DeepSeek Harness cost & balance meter: account balance, recharge history, per-conversation spend/tokens, segmented progress bar, recharge button, low-balance guard, 8 languages & currencies.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -19,13 +19,16 @@
     "deepseek-harness",
     "dsh",
     "dsh-plugin",
+    "cost",
+    "spend",
     "balance",
     "usage",
+    "meter",
     "plugin"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/doublemolu/dsh-balance-dock.git"
+    "url": "https://github.com/doublemolu/dsh-costometer.git"
   }
 }

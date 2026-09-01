@@ -1,19 +1,27 @@
-# dsh-balance-dock
+# 花知多少 · dsh-costometer
 
-一个永久性的 DeepSeek Harness（DSH）插件：在左侧边栏**设置按钮上方**常驻一张余额卡片，显示 DeepSeek 账户余额、本会话花费与 token 用量、50 元分段进度条和充值入口。
+> **[English](README.md) | [中文](README.zh.md)**
+
+一个永久性的 DeepSeek Harness（DSH）**花费与余额计量器**：在左侧边栏**设置按钮上方**常驻一张卡片，显示 DeepSeek 账户余额、充值记录、本会话花费与 token 用量、50 元分段进度条和充值入口。
 
 同时适配宽侧栏（完整卡片）与折叠后的 56px 窄轨道（状态小圆点）。
+
+## 名字的含义
+
+**dsh-costometer** = **dsh**（DeepSeek Harness）+ **cost**（花费）+ **-ometer**（计量仪表）——一个"花钱计量器"。中文名 **花知多少**，取自"钱到底花去哪儿了？"的玩味说法：余额还剩多少、每个会话花了多少、充了多少钱、余额够不够用，一眼看清。
 
 ## 功能
 
 - **账户余额** — 总额 / 赠金 / 充值金额，自动刷新。调用 DeepSeek 官方免费接口 `GET /user/balance`，**不消耗任何 token**。
 - **本会话花费** — 两个维度：
   - `本次用量`（最近一次模型调用）：单次调用的 token 数与估算费用。
-  - `本会话累计`（会话总量）：从**持久会话日志**折叠得出，**重启 DSH 也不丢失**；按每次调用的真实模型 + 官方价目表 + 峰谷折扣估算。
+  - `本会话累计`（会话总量）：从**持久会话日志**折叠得出，**重启 DSH 也不丢失**；按每次调用的真实模型 + 官方**人民币峰谷价目表**估算。
   - `本会话累计调用模型次数`：本会话一共调用了多少次模型。
+- **充值记录** — `最近充值`（最近一次充值的时间 + 金额）+ `累计充值`（充值总和），通过观测余额增长本地追踪（官方 API 不提供充值历史）。
 - **50 元分段进度条** — 轨道 = 充值金额（每段 50 元），绿色填充 = 剩余余额的比例。从右端开始消耗；最右一段剩余 **低于 ¥15 变红**；某段耗尽时以"气球爆裂"特效消失，剩余填充丝滑过渡到新宽度。随侧边栏宽度自适应。
 - **充值按钮** — 进度条下方独立按钮，点击在新标签页打开 DeepSeek 开放平台充值页。
 - **低余额提醒** — 低于 ¥10 黄色警示、低于 ¥3 红色警示，以及"本会话花费已超过余额"提示。
+- **8 种语言与货币** — 简体中文 / 繁體中文 / English (US/UK) / Deutsch / 日本語 / 한국어 / Русский；每种语言默认对应货币（CNY/TWD/USD/GBP/EUR/JPY/KRW/RUB），汇率**自动更新**（以人民币为基准，免费 API，**零 token 消耗**）。
 - **位置守护** — 卡片以最高优先级注册在侧边栏底部；若其他插件注册到同一区域或替换整个侧边栏，会弹窗询问"允许挤占"还是"保持余额卡片优先"。
 - **主题适配** — 全部使用 DSH 主题 token，深/浅色主题自动适配。
 
@@ -28,15 +36,15 @@
 
 ```bash
 # 在 DSH profile 目录下（~/.dsh/profiles/web）
-dsh plugin --profile web add git+https://github.com/<你的账号>/dsh-balance-dock.git
+dsh plugin --profile web add git+https://github.com/doublemolu/dsh-costometer.git
 ```
 
 ### 方式二：clone 后本地链接
 
 ```bash
-git clone https://github.com/<你的账号>/dsh-balance-dock.git
+git clone https://github.com/doublemolu/dsh-costometer.git
 cd ~/.dsh/profiles/web
-pnpm add file:/绝对路径/dsh-balance-dock
+pnpm add file:/绝对路径/dsh-costometer
 ```
 
 ### 注册插件行
@@ -46,7 +54,7 @@ pnpm add file:/绝对路径/dsh-balance-dock
 ```yaml
 - insert:
     - id: balance-dock
-      name: dsh-balance-dock
+      name: dsh-costometer
 ```
 
 ### 重启 DSH
@@ -67,7 +75,7 @@ pnpm add file:/绝对路径/dsh-balance-dock
 
 ## 配置（v1.1.0+）
 
-所有可调项都放在 `$DSH_HOME/dsh-balance-dock.json`（首次运行自动生成默认配置）。改完保存即可，约 10 秒内生效。
+所有可调项都放在 `$DSH_HOME/dsh-costometer.json`（首次运行自动生成默认配置）。改完保存即可，约 10 秒内生效。
 
 ```json
 {

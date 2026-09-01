@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to dsh-balance-dock.
+All notable changes to **dsh-costometer（花知多少）**（原 dsh-balance-dock）。
+
+## [1.2.6] - 2026
+
+### Changed
+- **更名**：插件与仓库更名为 **dsh-costometer**（中文名"花知多少 · Cost-O-Meter"），旧名称与 URL 自动重定向。
+- **价目表修复**：按 DeepSeek 2026-08-17 生效的官方**人民币峰谷价**重写（deepseek-v4-flash / v4 / deepseek-chat / deepseek-reasoner，峰谷价格分开），费用直接以人民币估算，不再经美元汇率换算——显著提升估算准确度（此前用旧版 deepseek-chat 美元价导致明显高估）。
+- **本会话累计修复**：会话事件读取改为持久层原始读取（`sessionPersistence.inspect`）为主、`sessionQuery.readSession` 兜底，并暴露 `foldError` 诊断——修复长会话读取失败导致累计金额恒为 0 的问题。
 
 ## [1.2.5] - 2026
 

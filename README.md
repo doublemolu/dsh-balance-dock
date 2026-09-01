@@ -1,19 +1,27 @@
-# dsh-balance-dock
+# dsh-costometer · 花知多少
 
-A permanent DeepSeek Harness (DSH) plugin that shows your DeepSeek account balance, per-conversation spend and token usage, a segmented 50-yuan progress bar, and a recharge shortcut — all in a card docked **above the Settings button** in the left sidebar.
+> **[English](README.md) | [中文](README.zh.md)**
+
+A permanent DeepSeek Harness (DSH) **cost & balance meter**: account balance, recharge history, per-conversation spend and token usage, a segmented 50-yuan progress bar, and a recharge shortcut — all in a card docked **above the Settings button** in the left sidebar.
 
 Works with both the wide sidebar (full card) and the collapsed 56px rail (status dot).
+
+## About the name
+
+**dsh-costometer** = **dsh** (DeepSeek Harness) + **cost** + **-ometer** (a measuring instrument) — a "money-spend meter". Its Chinese title is **花知多少** (huā zhī duōshǎo), a playful take on *"how much have you actually spent?"* — the plugin answers that question at a glance: balance, every conversation's cost, recharge history, and a low-balance guard.
 
 ## Features
 
 - **Account balance** — total, granted (赠送) and topped-up (充值) amounts, refreshed automatically. Uses the free DeepSeek `GET /user/balance` endpoint — **no tokens consumed**.
 - **Per-conversation spend** — two figures:
   - `本次用量` (latest single model call): tokens + estimated cost of the most recent call.
-  - `本会话累计` (conversation total): folded from the **durable session log**, so it survives DSH restarts. Cost is estimated per call using the actual model and DeepSeek's official pricing with peak/off-peak discounts.
+  - `本会话累计` (conversation total): folded from the **durable session log**, so it survives DSH restarts. Cost is estimated per call using the actual model and DeepSeek's official **CNY peak/off-peak pricing**.
   - `本会话累计调用模型次数`: how many times the model was called in this conversation.
+- **Recharge history** — `最近充值` (last top-up time + amount) and `累计充值` (total topped up), tracked locally by observing balance growth (the official API exposes no recharge history).
 - **50-yuan segmented progress bar** — the track represents your topped-up amount (50 yuan per segment); the green fill shows the remaining balance proportionally. Consumption depletes from the right; the rightmost segment turns **red below ¥15**; when a 50-yuan block is fully used it disappears with a *balloon-pop* effect and the fill smoothly stretches to the new width. Resizes with the sidebar.
 - **Recharge button** — a separate button below the bar that opens the DeepSeek open platform top-up page in a new tab.
 - **Low-balance alerts** — amber warning below ¥10, red alert below ¥3, and a "conversation spend exceeds balance" notice.
+- **8 languages & currencies** — 简体中文 / 繁體中文 / English (US/UK) / Deutsch / 日本語 / 한국어 / Русский; each language defaults to its currency (CNY/TWD/USD/GBP/EUR/JPY/KRW/RUB) with **auto-updated exchange rates** against CNY (free API, **zero token cost**).
 - **Position guard** — the card registers at the top of the sidebar footer; if another plugin registers into the sidebar footer or replaces the whole sidebar, a popup asks whether to allow the displacement or keep the balance card first.
 - **Theme-aware** — uses DSH theme tokens, adapts to light/dark themes.
 
@@ -28,15 +36,15 @@ Works with both the wide sidebar (full card) and the collapsed 56px rail (status
 
 ```bash
 # in your dsh profile directory (~/.dsh/profiles/web)
-dsh plugin --profile web add git+https://github.com/doublemolu/dsh-balance-dock.git
+dsh plugin --profile web add git+https://github.com/doublemolu/dsh-costometer.git
 ```
 
 ### Option 2 — clone and link locally
 
 ```bash
-git clone https://github.com/doublemolu/dsh-balance-dock.git
+git clone https://github.com/doublemolu/dsh-costometer.git
 cd ~/.dsh/profiles/web
-pnpm add file:/absolute/path/to/dsh-balance-dock
+pnpm add file:/absolute/path/to/dsh-costometer
 ```
 
 ### Register the plugin row
@@ -46,7 +54,7 @@ Add the row to your profile composition `~/.dsh/profiles/web/cordis.patch.yml`:
 ```yaml
 - insert:
     - id: balance-dock
-      name: dsh-balance-dock
+      name: dsh-costometer
 ```
 
 ### Restart DSH
@@ -67,7 +75,7 @@ Plugin-set changes take effect on restart. After restart the card appears above 
 
 ## Configuration (v1.1.0+)
 
-All tunables live in `$DSH_HOME/dsh-balance-dock.json` (auto-generated with defaults on first run). Edit and save — the plugin picks changes up within ~10s.
+All tunables live in `$DSH_HOME/dsh-costometer.json` (auto-generated with defaults on first run). Edit and save — the plugin picks changes up within ~10s.
 
 ```json
 {
