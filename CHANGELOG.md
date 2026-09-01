@@ -2,6 +2,15 @@
 
 All notable changes to dsh-balance-dock.
 
+## [1.2.3] - 2026
+
+### Changed
+- **英语拆分为美式/英式**：English (US) → 默认 USD，English (UK) → 默认 GBP；新增英镑（GBP £）货币选项。
+- **汇率机制修正**：
+  - 自动拉取改为**多 API 兜底链**（frankfurter → open.er-api → frankfurter.dev），任一可用即用实时汇率，全部失败才回退内置值。
+  - 设置弹窗移除手动"汇率 7.1"输入框（那是成本估算参数，易误解），改为展示**自动更新汇率状态行**：`1 CNY ≈ x.xxxx 币种 · 实时/内置兜底`。
+- 支持货币：CNY / TWD / USD / GBP / EUR / JPY / KRW / RUB。
+
 ## [1.2.2] - 2026
 
 ### Changed

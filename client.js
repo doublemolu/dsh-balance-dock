@@ -74,22 +74,25 @@ window.__ModuleLoader__.load({
     }
     // 充值相关文案（v1.2.2 新增）
     const I18N_EXTRA = {
-      'zh-CN': { grantTop: '赠金', lastRecharge: '最近充值', totalRecharge: '累计充值', noRecord: '暂无充值记录' },
-      'zh-TW': { grantTop: '贈金', lastRecharge: '最近充值', totalRecharge: '累計充值', noRecord: '暫無充值記錄' },
-      'en': { grantTop: 'Grant', lastRecharge: 'Last top-up', totalRecharge: 'Total top-ups', noRecord: 'No top-ups recorded' },
-      'de': { grantTop: 'Bonus', lastRecharge: 'Letzte Aufladung', totalRecharge: 'Gesamt Aufladung', noRecord: 'Keine Aufladung erfasst' },
-      'ja': { grantTop: '特典', lastRecharge: '最近のチャージ', totalRecharge: '累計チャージ', noRecord: 'チャージ記録なし' },
-      'ko': { grantTop: '보너스', lastRecharge: '최근 충전', totalRecharge: '누적 충전', noRecord: '충전 기록 없음' },
-      'ru': { grantTop: 'Бонус', lastRecharge: 'Последнее пополнение', totalRecharge: 'Всего пополнений', noRecord: 'Нет записей' },
+      'zh-CN': { grantTop: '赠金', lastRecharge: '最近充值', totalRecharge: '累计充值', noRecord: '暂无充值记录', fxAuto: '汇率（自动更新）', fxLive: '实时', fxFallback: '内置兜底' },
+      'zh-TW': { grantTop: '贈金', lastRecharge: '最近充值', totalRecharge: '累計充值', noRecord: '暫無充值記錄', fxAuto: '匯率（自動更新）', fxLive: '即時', fxFallback: '內建備援' },
+      'en': { grantTop: 'Grant', lastRecharge: 'Last top-up', totalRecharge: 'Total top-ups', noRecord: 'No top-ups recorded', fxAuto: 'FX rate (auto)', fxLive: 'live', fxFallback: 'built-in fallback' },
+      'de': { grantTop: 'Bonus', lastRecharge: 'Letzte Aufladung', totalRecharge: 'Gesamt Aufladung', noRecord: 'Keine Aufladung erfasst', fxAuto: 'Wechselkurs (auto)', fxLive: 'live', fxFallback: 'eingebauter Fallback' },
+      'ja': { grantTop: '特典', lastRecharge: '最近のチャージ', totalRecharge: '累計チャージ', noRecord: 'チャージ記録なし', fxAuto: '為替レート（自動）', fxLive: 'リアルタイム', fxFallback: '内蔵フォールバック' },
+      'ko': { grantTop: '보너스', lastRecharge: '최근 충전', totalRecharge: '누적 충전', noRecord: '충전 기록 없음', fxAuto: '환율 (자동)', fxLive: '실시간', fxFallback: '내장 폴백' },
+      'ru': { grantTop: 'Бонус', lastRecharge: 'Последнее пополнение', totalRecharge: 'Всего пополнений', noRecord: 'Нет записей', fxAuto: 'Курс (авто)', fxLive: 'в реальном времени', fxFallback: 'встроенный запасной' },
     }
     for (const k of Object.keys(I18N)) Object.assign(I18N[k], I18N_EXTRA[k] || {})
+    // 英式/英式英语别名（共享同一份英文文案）
+    I18N['en-US'] = I18N['en']
+    I18N['en-GB'] = I18N['en']
 
-    const LANG_CURRENCY = { 'zh-CN': 'CNY', 'zh-TW': 'TWD', en: 'USD', de: 'EUR', ja: 'JPY', ko: 'KRW', ru: 'RUB' }
-    const LOCALES = { 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', en: 'en-US', de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', ru: 'ru-RU' }
-    const CURRENCY_OPTIONS = [['CNY', 'CNY ¥'], ['TWD', 'TWD NT$'], ['USD', 'USD $'], ['EUR', 'EUR €'], ['JPY', 'JPY ¥'], ['KRW', 'KRW ₩'], ['RUB', 'RUB ₽']]
-    const LANGUAGE_OPTIONS = [['zh-CN', '简体中文'], ['zh-TW', '繁體中文'], ['en', 'English'], ['de', 'Deutsch'], ['ja', '日本語'], ['ko', '한국어'], ['ru', 'Русский']]
+    const LANG_CURRENCY = { 'zh-CN': 'CNY', 'zh-TW': 'TWD', en: 'USD', 'en-US': 'USD', 'en-GB': 'GBP', de: 'EUR', ja: 'JPY', ko: 'KRW', ru: 'RUB' }
+    const LOCALES = { 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', en: 'en-US', 'en-US': 'en-US', 'en-GB': 'en-GB', de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', ru: 'ru-RU' }
+    const CURRENCY_OPTIONS = [['CNY', 'CNY ¥'], ['TWD', 'TWD NT$'], ['USD', 'USD $'], ['GBP', 'GBP £'], ['EUR', 'EUR €'], ['JPY', 'JPY ¥'], ['KRW', 'KRW ₩'], ['RUB', 'RUB ₽']]
+    const LANGUAGE_OPTIONS = [['zh-CN', '简体中文'], ['zh-TW', '繁體中文'], ['en-US', 'English (US)'], ['en-GB', 'English (UK)'], ['de', 'Deutsch'], ['ja', '日本語'], ['ko', '한국어'], ['ru', 'Русский']]
 
-    const symOf = { CNY: '¥', TWD: 'NT$', USD: '$', EUR: '€', JPY: '¥', KRW: '₩', RUB: '₽' }
+    const symOf = { CNY: '¥', TWD: 'NT$', USD: '$', GBP: '£', EUR: '€', JPY: '¥', KRW: '₩', RUB: '₽' }
     const fmtInt = (v) => Math.round(v).toLocaleString('en-US')
     const pad2 = (n) => (n < 10 ? '0' : '') + n
     const clock = (t) => { const d = new Date(t); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) }
@@ -384,7 +387,12 @@ window.__ModuleLoader__.load({
           numField(t.fRed + ' redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
           numField(t.fWarnLow + ' warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
           numField(t.fWarnDanger + ' warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
-          numField(t.fx + ' fxCny', form.fxCny, (e) => setField('fxCny', parseFloat(e.target.value) || 0)),
+          React.createElement('div', { key: 'fxauto', className: 'dsbd-field' },
+            React.createElement('span', { className: 'dsbd-field-k' }, t.fxAuto),
+            React.createElement('span', { className: 'dsbd-v', style: { fontSize: '11px' } },
+              rates && rates.rates && rates.rates[displayCurrency]
+                ? ('1 CNY ≈ ' + rates.rates[displayCurrency].toFixed(4) + ' ' + displayCurrency + ' · ' + (rates.source === 'live' ? t.fxLive : t.fxFallback))
+                : '…')),
           React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, t.showSection),
           rowToggle('last', t.lastUsage),
           rowToggle('lastModel', t.lastModel),
