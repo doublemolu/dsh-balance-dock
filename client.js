@@ -1,8 +1,8 @@
-// dsh-balance-dock — Client 半边 (v1.2.0)
+// dsh-costometer — Client 半边 (v1.2.7)
 // 经典脚本 bundle：window.__ModuleLoader__.load；浏览器全局（fetch/setInterval/document/Intl）。
 // 与 Host 半通信走同源 HTTP 路由 /dsh-balance/*。
 window.__ModuleLoader__.load({
-  id: 'dsh-balance-dock',
+  id: 'dsh-costometer',
   factory: (require) => {
     const React = require('react')
 

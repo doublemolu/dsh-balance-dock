@@ -2,6 +2,13 @@
 
 All notable changes to **dsh-costometer（花知多少）**（原 dsh-balance-dock）。
 
+## [1.2.7] - 2026
+
+### Fixed
+- **客户端 bundle id 与包名对齐**：`window.__ModuleLoader__.load` 的 id 改为 `dsh-costometer`（必须与包名一致，否则改名后客户端半无法加载）。
+- **配置文件改名迁移**：`$DSH_HOME/dsh-costometer.json` / `dsh-costometer-data.json`（自动从旧名迁移既有配置与充值记录）。
+- 本地安装包名/依赖/插件行同步为 `dsh-costometer`。
+
 ## [1.2.6] - 2026
 
 ### Changed
