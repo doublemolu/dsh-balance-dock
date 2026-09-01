@@ -89,6 +89,9 @@ All tunables live in `$DSH_HOME/dsh-balance-dock.json` (auto-generated with defa
 | `redThreshold` | Rightmost segment turns red below this (yuan) | 15 |
 | `warnLow` / `warnDanger` | Low-balance alert thresholds (yuan) | 10 / 3 |
 | `fxCny` | Approximate CNY FX rate for cost estimates | 7.1 |
+| `lang` | UI language: `zh-CN` / `zh-TW` / `en` / `de` / `ja` / `ko` / `ru` | zh-CN |
+| `currency` | Display currency: `CNY` / `TWD` / `USD` / `EUR` / `JPY` / `KRW` / `RUB` (auto-updated rates against CNY) | CNY |
+| `rates` | Built-in fallback exchange rates (1 CNY → currency); live rates auto-fetch from a free API, 6h cache, **zero token cost** | built-in |
 | `prices` | Per-model USD pricing per million tokens | official |
 
 ## How it works

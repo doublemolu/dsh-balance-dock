@@ -1,5 +1,5 @@
-// dsh-balance-dock — Client 半边 (v1.1.0)
-// 经典脚本 bundle：window.__ModuleLoader__.load；浏览器全局（fetch/setInterval/document）。
+// dsh-balance-dock — Client 半边 (v1.2.0)
+// 经典脚本 bundle：window.__ModuleLoader__.load；浏览器全局（fetch/setInterval/document/Intl）。
 // 与 Host 半通信走同源 HTTP 路由 /dsh-balance/*。
 window.__ModuleLoader__.load({
   id: 'dsh-balance-dock',
@@ -17,13 +17,16 @@ window.__ModuleLoader__.load({
       '.dsbd-dot.ok{background:var(--dsw-alias-state-success-primary)}',
       '.dsbd-dot.warn{background:var(--dsw-alias-state-warn-primary)}',
       '.dsbd-dot.err{background:var(--dsw-alias-state-error-primary)}',
-      '.dsbd-total{font-size:17px;font-weight:700;line-height:1.3}',
-      '.dsbd-curr{font-size:12px;font-weight:600;margin-right:2px;color:var(--dsw-alias-label-secondary)}',
+      '.dsbd-total{font-size:17px;font-weight:700;line-height:1.3;color:#f5c518}',
+      '.dsbd-total .dsbd-curr{color:#f5c518}',
+      '.dsbd-curr{font-size:12px;font-weight:600;margin-right:2px}',
+      '.dsbd-gold{color:#f5c518;font-weight:600}',
       '.dsbd-delta{font-size:11px;font-weight:600;margin-left:6px}',
       '.dsbd-delta.up{color:var(--dsw-alias-state-success-primary)}',
       '.dsbd-delta.down{color:var(--dsw-alias-state-error-primary)}',
       '.dsbd-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px}',
       '.dsbd-k{color:var(--dsw-alias-label-secondary);font-size:11px}',
+      '.dsbd-k.blue{color:var(--dsw-alias-brand-primary);font-weight:700}',
       '.dsbd-v{font-size:12px;font-weight:500}',
       '.dsbd-div{height:1px;background:var(--dsw-alias-border-l1);margin:5px 0}',
       '.dsbd-note{font-size:11px}',
@@ -45,9 +48,8 @@ window.__ModuleLoader__.load({
       '.dsbd-field{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}',
       '.dsbd-field-k{color:var(--dsw-alias-label-secondary)}',
       '.dsbd-input{width:90px;padding:4px 8px;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-size:12px;font-family:inherit}',
+      '.dsbd-select{width:150px;padding:4px 8px;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-size:12px;font-family:inherit}',
       '.dsbd-check{width:16px;height:16px;accent-color:var(--dsw-alias-brand-primary);cursor:pointer}',
-      '.dsbd-price-group{border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}',
-      '.dsbd-price-head{font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary)}',
       '.dsbd-modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}',
       '.dsbd-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);cursor:pointer;font-size:12px;font-family:inherit}',
       '.dsbd-btn:hover{background:var(--dsw-alias-bg-layer-2)}',
@@ -62,11 +64,26 @@ window.__ModuleLoader__.load({
       'div[data-slot="sidebar"] div:has(> div[data-slot="sidebar.footer.action"]){flex-wrap:wrap}',
     ].join('')
 
-    const sym = (c) => (c === 'CNY' ? '¥' : c === 'USD' ? '$' : (c || '') + ' ')
-    const fmt2 = (v) => (v >= 0.005 ? v.toFixed(2) : '≈0.00')
+    // ── i18n ──
+    const I18N = {
+      'zh-CN': { title: 'DeepSeek 余额', refresh: '手动刷新', fail: '余额查询失败', grantTop: '赠金 / 充值', lastUsage: '本次用量', lastModel: '本次使用模型', total: '本会话累计', calls: '本会话累计调用模型次数', times: '次', warnLow: '余额偏低，建议充值', warnDanger: '余额严重不足，建议尽快充值', overrun: '本会话累计花费已超过账户余额', updated: '更新于', recharge: '充值', settings: '设置', loading: '余额查询中…', segPer: '每段', modalTitle: '余额插件设置', fSegment: '每段金额', fRed: '红色阈值', fWarnLow: '黄色警告', fWarnDanger: '红色警告', fLang: '语言', fCurrency: '货币', showSection: '显示内容', reset: '恢复默认', cancel: '取消', confirm: '确认', remaining: '剩余', topped: '充值', fx: '汇率' },
+      'zh-TW': { title: 'DeepSeek 餘額', refresh: '手動重新整理', fail: '餘額查詢失敗', grantTop: '贈金 / 充值', lastUsage: '本次用量', lastModel: '本次使用模型', total: '本會話累計', calls: '本會話累計呼叫模型次數', times: '次', warnLow: '餘額偏低，建議充值', warnDanger: '餘額嚴重不足，請盡快充值', overrun: '本會話累計花費已超過帳戶餘額', updated: '更新於', recharge: '充值', settings: '設定', loading: '餘額查詢中…', segPer: '每段', modalTitle: '餘額外掛設定', fSegment: '每段金額', fRed: '紅色閾值', fWarnLow: '黃色警告', fWarnDanger: '紅色警告', fLang: '語言', fCurrency: '貨幣', showSection: '顯示內容', reset: '恢復預設', cancel: '取消', confirm: '確認', remaining: '剩餘', topped: '充值', fx: '匯率' },
+      'en': { title: 'DeepSeek Balance', refresh: 'Refresh', fail: 'Balance query failed', grantTop: 'Grant / Top-up', lastUsage: 'Latest usage', lastModel: 'Latest model', total: 'Session total', calls: 'Session model calls', times: 'calls', warnLow: 'Balance low, consider top-up', warnDanger: 'Balance critically low, top up soon', overrun: 'Session spend exceeds balance', updated: 'Updated', recharge: 'Top up', settings: 'Settings', loading: 'Loading balance…', segPer: 'per segment', modalTitle: 'Balance Plugin Settings', fSegment: 'Segment amount', fRed: 'Red threshold', fWarnLow: 'Amber warning', fWarnDanger: 'Red warning', fLang: 'Language', fCurrency: 'Currency', showSection: 'Show rows', reset: 'Restore defaults', cancel: 'Cancel', confirm: 'Confirm', remaining: 'Remaining', topped: 'Top-up', fx: 'FX rate' },
+      'de': { title: 'DeepSeek Guthaben', refresh: 'Aktualisieren', fail: 'Guthabenabfrage fehlgeschlagen', grantTop: 'Bonus / Aufladung', lastUsage: 'Letzte Nutzung', lastModel: 'Letztes Modell', total: 'Sitzung gesamt', calls: 'Modellaufrufe (Sitzung)', times: 'Aufrufe', warnLow: 'Guthaben niedrig, aufladen empfohlen', warnDanger: 'Guthaben kritisch, bald aufladen', overrun: 'Sitzungskosten übersteigen Guthaben', updated: 'Aktualisiert', recharge: 'Aufladen', settings: 'Einstellungen', loading: 'Guthaben wird geladen…', segPer: 'pro Segment', modalTitle: 'Guthaben-Plugin Einstellungen', fSegment: 'Segmentbetrag', fRed: 'Rote Schwelle', fWarnLow: 'Gelbe Warnung', fWarnDanger: 'Rote Warnung', fLang: 'Sprache', fCurrency: 'Währung', showSection: 'Zeilen anzeigen', reset: 'Standard wiederherstellen', cancel: 'Abbrechen', confirm: 'Bestätigen', remaining: 'Verbleibend', topped: 'Aufladung', fx: 'Wechselkurs' },
+      'ja': { title: 'DeepSeek 残高', refresh: '更新', fail: '残高の取得に失敗', grantTop: '特典 / チャージ', lastUsage: '最新の使用量', lastModel: '最新のモデル', total: 'セッション累計', calls: 'モデル呼び出し回数', times: '回', warnLow: '残高が少ないです。チャージを推奨', warnDanger: '残高が非常に少ないです。早めにチャージを', overrun: 'セッション費用が残高を超過', updated: '更新時刻', recharge: 'チャージ', settings: '設定', loading: '残高を読み込み中…', segPer: 'セグメントあたり', modalTitle: '残高プラグイン設定', fSegment: 'セグメント金額', fRed: '赤色閾値', fWarnLow: '黄色警告', fWarnDanger: '赤色警告', fLang: '言語', fCurrency: '通貨', showSection: '表示行', reset: '初期値に戻す', cancel: 'キャンセル', confirm: '確認', remaining: '残り', topped: 'チャージ', fx: '為替レート' },
+      'ko': { title: 'DeepSeek 잔액', refresh: '새로고침', fail: '잔액 조회 실패', grantTop: '보너스 / 충전', lastUsage: '최근 사용량', lastModel: '최근 모델', total: '세션 누적', calls: '모델 호출 횟수', times: '회', warnLow: '잔액이 낮습니다. 충전을 권장', warnDanger: '잔액이 매우 낮습니다. 곧 충전하세요', overrun: '세션 비용이 잔액을 초과', updated: '업데이트', recharge: '충전', settings: '설정', loading: '잔액 로딩 중…', segPer: '세그먼트당', modalTitle: '잔액 플러그인 설정', fSegment: '세그먼트 금액', fRed: '빨간색 임계값', fWarnLow: '노란색 경고', fWarnDanger: '빨간색 경고', fLang: '언어', fCurrency: '통화', showSection: '표시 행', reset: '기본값 복원', cancel: '취소', confirm: '확인', remaining: '남은', topped: '충전', fx: '환율' },
+      'ru': { title: 'Баланс DeepSeek', refresh: 'Обновить', fail: 'Ошибка запроса баланса', grantTop: 'Бонус / Пополнение', lastUsage: 'Последнее использование', lastModel: 'Последняя модель', total: 'Итого за сессию', calls: 'Вызовы моделей', times: 'вызовов', warnLow: 'Баланс низкий, пополните', warnDanger: 'Баланс критически низкий, пополните скорее', overrun: 'Расходы сессии превышают баланс', updated: 'Обновлено', recharge: 'Пополнить', settings: 'Настройки', loading: 'Загрузка баланса…', segPer: 'за сегмент', modalTitle: 'Настройки плагина', fSegment: 'Сумма сегмента', fRed: 'Красный порог', fWarnLow: 'Жёлтое предупреждение', fWarnDanger: 'Красное предупреждение', fLang: 'Язык', fCurrency: 'Валюта', showSection: 'Показывать строки', reset: 'Сбросить', cancel: 'Отмена', confirm: 'Подтвердить', remaining: 'Остаток', topped: 'Пополнение', fx: 'Курс' },
+    }
+    const LANG_CURRENCY = { 'zh-CN': 'CNY', 'zh-TW': 'TWD', en: 'USD', de: 'EUR', ja: 'JPY', ko: 'KRW', ru: 'RUB' }
+    const LOCALES = { 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', en: 'en-US', de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', ru: 'ru-RU' }
+    const CURRENCY_OPTIONS = [['CNY', 'CNY ¥'], ['TWD', 'TWD NT$'], ['USD', 'USD $'], ['EUR', 'EUR €'], ['JPY', 'JPY ¥'], ['KRW', 'KRW ₩'], ['RUB', 'RUB ₽']]
+    const LANGUAGE_OPTIONS = [['zh-CN', '简体中文'], ['zh-TW', '繁體中文'], ['en', 'English'], ['de', 'Deutsch'], ['ja', '日本語'], ['ko', '한국어'], ['ru', 'Русский']]
+
+    const symOf = { CNY: '¥', TWD: 'NT$', USD: '$', EUR: '€', JPY: '¥', KRW: '₩', RUB: '₽' }
     const fmtInt = (v) => Math.round(v).toLocaleString('en-US')
     const pad2 = (n) => (n < 10 ? '0' : '') + n
     const clock = (t) => { const d = new Date(t); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) }
+    let currentLang = 'zh-CN' // 供位置守护弹窗使用（由 Dock 同步）
 
     function Dock(props) {
       const wide = props.wide === true
@@ -75,6 +92,7 @@ window.__ModuleLoader__.load({
       const [balance, setBalance] = React.useState(null)
       const [spend, setSpend] = React.useState(null)
       const [cfg, setCfg] = React.useState(null)
+      const [rates, setRates] = React.useState(null)
       const [updatedAt, setUpdatedAt] = React.useState(null)
       const [delta, setDelta] = React.useState(null)
       const [refresh, setRefresh] = React.useState(0)
@@ -84,7 +102,27 @@ window.__ModuleLoader__.load({
       const [spinning, setSpinning] = React.useState(false)
       const prevBal = React.useRef(null)
 
-      // 配置
+      const lang = cfg && cfg.lang ? cfg.lang : 'zh-CN'
+      const t = I18N[lang] || I18N['zh-CN']
+      currentLang = lang // 同步给位置守护弹窗
+      const displayCurrency = cfg && cfg.currency ? cfg.currency : 'CNY'
+      const rate = (rates && rates.rates && rates.rates[displayCurrency]) ? rates.rates[displayCurrency] : 1
+      const moneyFull = (cnyAmount) => {
+        const val = cnyAmount * rate
+        try {
+          return new Intl.NumberFormat(LOCALES[lang] || 'zh-CN', {
+            style: 'currency', currency: displayCurrency,
+            minimumFractionDigits: (displayCurrency === 'JPY' || displayCurrency === 'KRW') ? 0 : 2,
+            maximumFractionDigits: (displayCurrency === 'JPY' || displayCurrency === 'KRW') ? 0 : 2,
+          }).format(val)
+        } catch (e) { return (symOf[displayCurrency] || displayCurrency) + ' ' + val.toFixed(2) }
+      }
+      const moneySmall = (cnyAmount) => {
+        const val = cnyAmount * rate
+        if (val < 0.005) return '≈' + (symOf[displayCurrency] || displayCurrency) + '0.00'
+        return moneyFull(cnyAmount)
+      }
+
       React.useEffect(() => {
         let alive = true
         fetch('/dsh-balance/config')
@@ -97,8 +135,15 @@ window.__ModuleLoader__.load({
           .catch(() => {})
         return () => { alive = false }
       }, [])
+      React.useEffect(() => {
+        let alive = true
+        fetch('/dsh-balance/rates')
+          .then((r) => r.json())
+          .then((r) => { if (alive && r && r.ok === true) setRates(r) })
+          .catch(() => {})
+        return () => { alive = false }
+      }, [refresh])
 
-      // ── 设置弹窗：打开时拉取最新配置 ──
       const openSettings = () => {
         fetch('/dsh-balance/config')
           .then((r) => r.json())
@@ -133,7 +178,6 @@ window.__ModuleLoader__.load({
         setRefresh((r) => r + 1)
       }
 
-      // 余额轮询（15s）+ 手动刷新
       React.useEffect(() => {
         let alive = true
         const tick = () => {
@@ -158,14 +202,12 @@ window.__ModuleLoader__.load({
         return () => { alive = false; clearInterval(timer) }
       }, [refresh])
 
-      // 余额变化提示 10s 后消失
       React.useEffect(() => {
         if (delta === null) return
         const timer = setTimeout(() => setDelta(null), 10000)
         return () => clearTimeout(timer)
       }, [delta])
 
-      // 会话花费轮询（8s）+ 手动刷新
       React.useEffect(() => {
         let alive = true
         const tick = () => {
@@ -186,7 +228,6 @@ window.__ModuleLoader__.load({
       const warnLow = cfg && typeof cfg.warnLow === 'number' ? cfg.warnLow : 10
       const warnDanger = cfg && typeof cfg.warnDanger === 'number' ? cfg.warnDanger : 3
       const status = !ok ? 'err' : balance.total < warnDanger ? 'err' : balance.total < warnLow ? 'warn' : 'ok'
-      const curr = ok ? sym(balance.currency) : sym('CNY')
       const last = spend && spend.ok === true ? spend.last : null
       const total = spend && spend.ok === true ? spend.total : null
       const lastCny = last ? last.estCny : null
@@ -195,21 +236,19 @@ window.__ModuleLoader__.load({
       const totalCny = total ? total.estCny : null
       const totalTok = total ? total.inputTokens + total.outputTokens : null
       const totalCalls = total ? total.calls : 0
-      const warnText = ok && balance.total < warnLow ? (balance.total < warnDanger ? '余额严重不足，建议尽快充值' : '余额偏低，建议充值') : ''
+      const warnText = ok && balance.total < warnLow ? (balance.total < warnDanger ? t.warnDanger : t.warnLow) : ''
       const overrun = ok && totalCny !== null && balance.total > 0 && totalCny > balance.total
       const showRows = (cfg && cfg.showRows) || { last: true, lastModel: true, total: true, calls: true }
 
-      // 按模型明细（hover 提示）
       const modelDetail = (total && total.models) ? Object.keys(total.models).map((mk) => {
         const m = total.models[mk]
-        return mk + ': ' + fmtInt(m.inputTokens + m.outputTokens) + ' tokens · ≈' + sym('CNY') + fmt2(m.estCny) + ' · ' + m.calls + ' 次'
+        return mk + ': ' + fmtInt(m.inputTokens + m.outputTokens) + ' tokens · ' + moneySmall(m.estCny) + ' · ' + m.calls + ' ' + t.times
       }).join('\n') : ''
 
       const railTitle = ok
-        ? 'DeepSeek 余额 ' + curr + balance.total.toFixed(2) + (totalCny !== null ? ' · 本会话累计 ' + sym('CNY') + fmt2(totalCny) : '')
-        : (balance && balance.error) ? '余额查询失败：' + balance.error : 'DeepSeek 余额查询中…'
+        ? t.title + ' ' + moneyFull(balance.total) + (totalCny !== null ? ' · ' + t.total + ' ' + moneySmall(totalCny) : '')
+        : (balance && balance.error) ? t.fail + '：' + balance.error : t.loading
 
-      // ── 进度条（配置化段大小）──
       const balanceTotal = ok ? balance.total : 0
       const refAmount = ok && balance.toppedUp > 0 ? balance.toppedUp : (ok ? balance.total : 0)
       const litYuan = refAmount > 0 ? Math.min(balanceTotal, refAmount) : 0
@@ -232,38 +271,36 @@ window.__ModuleLoader__.load({
 
       const rows = []
       rows.push(React.createElement('div', { key: 'total', className: 'dsbd-total' },
-        React.createElement('span', { className: 'dsbd-curr' }, curr),
-        ok ? balance.total.toFixed(2) : '—',
+        ok ? moneyFull(balance.total) : '—',
         delta !== null
           ? React.createElement('span', { className: 'dsbd-delta ' + (delta.amount >= 0 ? 'up' : 'down') },
-            (delta.amount >= 0 ? '▲' : '▼') + ' ' + Math.abs(delta.amount).toFixed(2))
+            (delta.amount >= 0 ? '▲' : '▼') + ' ' + moneyFull(Math.abs(delta.amount)))
           : null))
       rows.push(React.createElement('div', { key: 'sub', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k' }, '赠金 / 充值'),
-        React.createElement('span', { className: 'dsbd-v' }, ok
-          ? curr + balance.granted.toFixed(2) + ' / ' + curr + balance.toppedUp.toFixed(2)
-          : (balance && balance.error) ? '查询失败' : '…')))
+        React.createElement('span', { className: 'dsbd-k' }, t.grantTop),
+        React.createElement('span', { className: 'dsbd-v dsbd-gold' }, ok
+          ? moneySmall(balance.granted) + ' / ' + moneySmall(balance.toppedUp)
+          : (balance && balance.error) ? t.fail : '…')))
       rows.push(React.createElement('div', { key: 'div', className: 'dsbd-div' }))
       if (showRows.last) rows.push(React.createElement('div', { key: 'last', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k' }, '本次用量'),
+        React.createElement('span', { className: 'dsbd-k blue' }, t.lastUsage),
         React.createElement('span', { className: 'dsbd-v' },
           (lastTok !== null ? fmtInt(lastTok) + ' tokens' : '…')
-          + (lastCny !== null ? ' · ≈' + sym('CNY') + fmt2(lastCny) : ''))))
+          + (lastCny !== null ? ' · ' + moneySmall(lastCny) : ''))))
       if (showRows.lastModel) rows.push(React.createElement('div', { key: 'lastmodel', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k' }, '本次使用模型'),
+        React.createElement('span', { className: 'dsbd-k blue' }, t.lastModel),
         React.createElement('span', { className: 'dsbd-v' }, lastModel ? lastModel : '…')))
       if (showRows.total) rows.push(React.createElement('div', { key: 'totals', className: 'dsbd-line', title: modelDetail || undefined },
-        React.createElement('span', { className: 'dsbd-k' }, '本会话累计'),
-        React.createElement('span', { className: 'dsbd-v' }, (totalTok !== null ? fmtInt(totalTok) + ' tokens' : '…') + (totalCny !== null ? ' · ≈' + sym('CNY') + fmt2(totalCny) : ''))))
+        React.createElement('span', { className: 'dsbd-k blue' }, t.total),
+        React.createElement('span', { className: 'dsbd-v' }, (totalTok !== null ? fmtInt(totalTok) + ' tokens' : '…') + (totalCny !== null ? ' · ' + moneySmall(totalCny) : ''))))
       if (showRows.calls) rows.push(React.createElement('div', { key: 'calls', className: 'dsbd-line' },
-        React.createElement('span', { className: 'dsbd-k' }, '本会话累计调用模型次数'),
-        React.createElement('span', { className: 'dsbd-v' }, totalCalls > 0 ? fmtInt(totalCalls) + ' 次' : '…')))
+        React.createElement('span', { className: 'dsbd-k blue' }, t.calls),
+        React.createElement('span', { className: 'dsbd-v' }, totalCalls > 0 ? fmtInt(totalCalls) + ' ' + t.times : '…')))
       if (warnText) rows.push(React.createElement('div', { key: 'warn', className: 'dsbd-note warn' }, warnText))
-      if (overrun) rows.push(React.createElement('div', { key: 'over', className: 'dsbd-note err' }, '本会话累计花费已超过账户余额'))
-      if (balance && !ok) rows.push(React.createElement('div', { key: 'err', className: 'dsbd-note err' }, balance.error || '余额查询失败'))
-      if (updatedAt !== null && ok) rows.push(React.createElement('div', { key: 'meta', className: 'dsbd-meta' }, '更新于 ' + clock(updatedAt)))
+      if (overrun) rows.push(React.createElement('div', { key: 'over', className: 'dsbd-note err' }, t.overrun))
+      if (balance && !ok) rows.push(React.createElement('div', { key: 'err', className: 'dsbd-note err' }, (balance.error ? t.fail + '：' + balance.error : t.fail)))
+      if (updatedAt !== null && ok) rows.push(React.createElement('div', { key: 'meta', className: 'dsbd-meta' }, t.updated + ' ' + clock(updatedAt)))
 
-      // 进度条 + 充值按钮
       const fillSegs = []
       for (let i = 0; i < litSegs; i++) {
         const isRight = i === litSegs - 1
@@ -272,7 +309,7 @@ window.__ModuleLoader__.load({
         fillSegs.push(React.createElement('div', { key: 'fs' + i, className: 'dsbd-fill-seg' },
           React.createElement('div', { className: 'dsbd-fill-inner', style: { width: innerW, background: color } })))
       }
-      rows.push(React.createElement('div', { key: 'bar', className: 'dsbd-track', title: ok ? ('剩余 ' + curr + balanceTotal.toFixed(2) + ' / 充值 ' + curr + refAmount.toFixed(2) + ' · 每段 ' + segBase + ' 元') : '余额查询失败' },
+      rows.push(React.createElement('div', { key: 'bar', className: 'dsbd-track', title: ok ? (t.remaining + ' ' + moneyFull(balanceTotal) + ' / ' + t.topped + ' ' + moneyFull(refAmount) + ' · ' + t.segPer + ' ' + moneyFull(segBase)) : t.fail },
         React.createElement('div', { className: 'dsbd-fill', style: { width: (fillRatio * 100).toFixed(2) + '%' } },
           fillSegs,
           burstId > 0
@@ -282,20 +319,23 @@ window.__ModuleLoader__.load({
         React.createElement('button', {
           type: 'button',
           className: 'dsbd-recharge-btn',
-          title: '前往 DeepSeek 开放平台充值',
+          title: 'https://platform.deepseek.com/top_up',
           onClick: () => { window.open('https://platform.deepseek.com/top_up', '_blank', 'noopener') },
-        }, '充值 ↗'),
+        }, t.recharge + ' ↗'),
         React.createElement('button', {
           type: 'button',
           className: 'dsbd-settings-btn',
-          title: '插件设置',
+          title: t.settings,
           onClick: openSettings,
-        }, '设置', ' ⚙')))
+        }, t.settings, ' ⚙')))
 
-      // ── 设置弹窗 ──
       const numField = (label, value, onChange) => React.createElement('div', { key: label, className: 'dsbd-field' },
         React.createElement('span', { className: 'dsbd-field-k' }, label),
         React.createElement('input', { type: 'number', step: 'any', className: 'dsbd-input', value: value, onChange: onChange }))
+      const selectField = (label, value, options, onChange) => React.createElement('div', { key: label, className: 'dsbd-field' },
+        React.createElement('span', { className: 'dsbd-field-k' }, label),
+        React.createElement('select', { className: 'dsbd-select', value: value, onChange: (e) => onChange(e.target.value) },
+          options.map((o) => React.createElement('option', { key: o[0], value: o[0] }, o[1]))))
       const rowToggle = (key, label) => React.createElement('div', { key: key, className: 'dsbd-field' },
         React.createElement('span', { className: 'dsbd-field-k' }, label),
         React.createElement('input', {
@@ -310,32 +350,34 @@ window.__ModuleLoader__.load({
           onClick: (e) => { if (e.target === e.currentTarget) setSettingsOpen(false) },
         },
         React.createElement('div', { className: 'dsbd-modal', onClick: (e) => e.stopPropagation() },
-          React.createElement('div', { className: 'dsbd-modal-title' }, '余额插件设置'),
-          numField('每段金额 segmentBase', form.segmentBase, (e) => setField('segmentBase', parseFloat(e.target.value) || 0)),
-          numField('红色阈值 redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
-          numField('黄色警告 warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
-          numField('红色警告 warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
-          numField('汇率 fxCny', form.fxCny, (e) => setField('fxCny', parseFloat(e.target.value) || 0)),
-          React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, '显示内容'),
-          rowToggle('last', '本次用量'),
-          rowToggle('lastModel', '本次使用模型'),
-          rowToggle('total', '本会话累计'),
-          rowToggle('calls', '本会话累计调用模型次数'),
+          React.createElement('div', { className: 'dsbd-modal-title' }, t.modalTitle),
+          selectField(t.fLang, form.lang || 'zh-CN', LANGUAGE_OPTIONS, (v) => setForm((f) => ({ ...f, lang: v, currency: LANG_CURRENCY[v] || f.currency }))),
+          selectField(t.fCurrency, form.currency || 'CNY', CURRENCY_OPTIONS, (v) => setField('currency', v)),
+          numField(t.fSegment + ' segmentBase', form.segmentBase, (e) => setField('segmentBase', parseFloat(e.target.value) || 0)),
+          numField(t.fRed + ' redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
+          numField(t.fWarnLow + ' warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
+          numField(t.fWarnDanger + ' warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
+          numField(t.fx + ' fxCny', form.fxCny, (e) => setField('fxCny', parseFloat(e.target.value) || 0)),
+          React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, t.showSection),
+          rowToggle('last', t.lastUsage),
+          rowToggle('lastModel', t.lastModel),
+          rowToggle('total', t.total),
+          rowToggle('calls', t.calls),
           React.createElement('div', { className: 'dsbd-modal-foot' },
-            React.createElement('button', { type: 'button', className: 'dsbd-btn reset', onClick: resetSettings }, '恢复默认'),
-            React.createElement('button', { type: 'button', className: 'dsbd-btn', onClick: () => setSettingsOpen(false) }, '取消'),
-            React.createElement('button', { type: 'button', className: 'dsbd-btn primary', onClick: saveSettings }, '确认'))))
+            React.createElement('button', { type: 'button', className: 'dsbd-btn reset', onClick: resetSettings }, t.reset),
+            React.createElement('button', { type: 'button', className: 'dsbd-btn', onClick: () => setSettingsOpen(false) }, t.cancel),
+            React.createElement('button', { type: 'button', className: 'dsbd-btn primary', onClick: saveSettings }, t.confirm))))
         : null
 
       return React.createElement(React.Fragment, null,
         React.createElement('div', { className: 'dsbd-dock' },
           React.createElement('div', { className: 'dsbd-head' },
             React.createElement('div', { className: 'dsbd-head-left' },
-              React.createElement('span', { className: 'dsbd-title' }, 'DeepSeek 余额'),
+              React.createElement('span', { className: 'dsbd-title' }, t.title),
               React.createElement('button', {
                 type: 'button',
                 className: 'dsbd-refresh' + (spinning ? ' spin' : ''),
-                title: '手动刷新',
+                title: t.refresh,
                 onClick: onRefreshClick,
                 onAnimationEnd: () => setSpinning(false),
               }, '⟳')),
@@ -354,7 +396,6 @@ window.__ModuleLoader__.load({
         const slots = ctx.get('slots')
         if (slots === undefined) { styleEl.remove(); return }
 
-        // ── 位置守护：检测其他插件注册到侧边栏底部时弹窗确认 ──
         let lastGuardAsk = Date.now()
         let selfChange = false
         let disposeSlot = null
@@ -372,7 +413,7 @@ window.__ModuleLoader__.load({
           const now = Date.now()
           if (now - lastGuardAsk < 30000) return
           lastGuardAsk = now
-          fetch('/dsh-balance/guard-ask')
+          fetch('/dsh-balance/guard-ask?lang=' + encodeURIComponent(currentLang))
             .then((r) => r.json())
             .then((r) => {
               if (r && r.choice === 'keep' && key === 'sidebar.footer.action') {
