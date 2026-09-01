@@ -45,6 +45,7 @@ window.__ModuleLoader__.load({
       '.dsbd-field{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}',
       '.dsbd-field-k{color:var(--dsw-alias-label-secondary)}',
       '.dsbd-input{width:90px;padding:4px 8px;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-size:12px;font-family:inherit}',
+      '.dsbd-check{width:16px;height:16px;accent-color:var(--dsw-alias-brand-primary);cursor:pointer}',
       '.dsbd-price-group{border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}',
       '.dsbd-price-head{font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary)}',
       '.dsbd-modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}',
@@ -106,11 +107,8 @@ window.__ModuleLoader__.load({
         setSettingsOpen(true)
       }
       const setField = (key, value) => { setForm((f) => ({ ...f, [key]: value })) }
-      const setPrice = (model, key, value) => {
-        setForm((f) => {
-          const m = (f && f.prices && f.prices[model]) ? f.prices[model] : {}
-          return { ...f, prices: { ...((f && f.prices) || {}), [model]: { ...m, [key]: value } } }
-        })
+      const setShowRow = (key, value) => {
+        setForm((f) => ({ ...f, showRows: { ...((f && f.showRows) || {}), [key]: value } }))
       }
       const saveSettings = () => {
         if (form === null) return
@@ -199,6 +197,7 @@ window.__ModuleLoader__.load({
       const totalCalls = total ? total.calls : 0
       const warnText = ok && balance.total < warnLow ? (balance.total < warnDanger ? '余额严重不足，建议尽快充值' : '余额偏低，建议充值') : ''
       const overrun = ok && totalCny !== null && balance.total > 0 && totalCny > balance.total
+      const showRows = (cfg && cfg.showRows) || { last: true, lastModel: true, total: true, calls: true }
 
       // 按模型明细（hover 提示）
       const modelDetail = (total && total.models) ? Object.keys(total.models).map((mk) => {
@@ -245,18 +244,18 @@ window.__ModuleLoader__.load({
           ? curr + balance.granted.toFixed(2) + ' / ' + curr + balance.toppedUp.toFixed(2)
           : (balance && balance.error) ? '查询失败' : '…')))
       rows.push(React.createElement('div', { key: 'div', className: 'dsbd-div' }))
-      rows.push(React.createElement('div', { key: 'last', className: 'dsbd-line' },
+      if (showRows.last) rows.push(React.createElement('div', { key: 'last', className: 'dsbd-line' },
         React.createElement('span', { className: 'dsbd-k' }, '本次用量'),
         React.createElement('span', { className: 'dsbd-v' },
           (lastTok !== null ? fmtInt(lastTok) + ' tokens' : '…')
           + (lastCny !== null ? ' · ≈' + sym('CNY') + fmt2(lastCny) : ''))))
-      rows.push(React.createElement('div', { key: 'lastmodel', className: 'dsbd-line' },
+      if (showRows.lastModel) rows.push(React.createElement('div', { key: 'lastmodel', className: 'dsbd-line' },
         React.createElement('span', { className: 'dsbd-k' }, '本次使用模型'),
         React.createElement('span', { className: 'dsbd-v' }, lastModel ? lastModel : '…')))
-      rows.push(React.createElement('div', { key: 'totals', className: 'dsbd-line', title: modelDetail || undefined },
+      if (showRows.total) rows.push(React.createElement('div', { key: 'totals', className: 'dsbd-line', title: modelDetail || undefined },
         React.createElement('span', { className: 'dsbd-k' }, '本会话累计'),
         React.createElement('span', { className: 'dsbd-v' }, (totalTok !== null ? fmtInt(totalTok) + ' tokens' : '…') + (totalCny !== null ? ' · ≈' + sym('CNY') + fmt2(totalCny) : ''))))
-      rows.push(React.createElement('div', { key: 'calls', className: 'dsbd-line' },
+      if (showRows.calls) rows.push(React.createElement('div', { key: 'calls', className: 'dsbd-line' },
         React.createElement('span', { className: 'dsbd-k' }, '本会话累计调用模型次数'),
         React.createElement('span', { className: 'dsbd-v' }, totalCalls > 0 ? fmtInt(totalCalls) + ' 次' : '…')))
       if (warnText) rows.push(React.createElement('div', { key: 'warn', className: 'dsbd-note warn' }, warnText))
@@ -297,11 +296,14 @@ window.__ModuleLoader__.load({
       const numField = (label, value, onChange) => React.createElement('div', { key: label, className: 'dsbd-field' },
         React.createElement('span', { className: 'dsbd-field-k' }, label),
         React.createElement('input', { type: 'number', step: 'any', className: 'dsbd-input', value: value, onChange: onChange }))
-      const priceFields = (model) => React.createElement('div', { key: model, className: 'dsbd-price-group' },
-        React.createElement('div', { className: 'dsbd-price-head' }, model),
-        numField('输入 in', form && form.prices && form.prices[model] ? form.prices[model].in : 0, (e) => setPrice(model, 'in', parseFloat(e.target.value) || 0)),
-        numField('缓存命中 inHit', form && form.prices && form.prices[model] ? form.prices[model].inHit : 0, (e) => setPrice(model, 'inHit', parseFloat(e.target.value) || 0)),
-        numField('输出 out', form && form.prices && form.prices[model] ? form.prices[model].out : 0, (e) => setPrice(model, 'out', parseFloat(e.target.value) || 0)))
+      const rowToggle = (key, label) => React.createElement('div', { key: key, className: 'dsbd-field' },
+        React.createElement('span', { className: 'dsbd-field-k' }, label),
+        React.createElement('input', {
+          type: 'checkbox',
+          className: 'dsbd-check',
+          checked: !!(form.showRows && form.showRows[key]),
+          onChange: (e) => setShowRow(key, e.target.checked),
+        }))
       const modal = settingsOpen && form
         ? React.createElement('div', {
           className: 'dsbd-overlay',
@@ -314,8 +316,11 @@ window.__ModuleLoader__.load({
           numField('黄色警告 warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
           numField('红色警告 warnDanger', form.warnDanger, (e) => setField('warnDanger', parseFloat(e.target.value) || 0)),
           numField('汇率 fxCny', form.fxCny, (e) => setField('fxCny', parseFloat(e.target.value) || 0)),
-          priceFields('deepseek-chat'),
-          priceFields('deepseek-reasoner'),
+          React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, '显示内容'),
+          rowToggle('last', '本次用量'),
+          rowToggle('lastModel', '本次使用模型'),
+          rowToggle('total', '本会话累计'),
+          rowToggle('calls', '本会话累计调用模型次数'),
           React.createElement('div', { className: 'dsbd-modal-foot' },
             React.createElement('button', { type: 'button', className: 'dsbd-btn reset', onClick: resetSettings }, '恢复默认'),
             React.createElement('button', { type: 'button', className: 'dsbd-btn', onClick: () => setSettingsOpen(false) }, '取消'),
