@@ -2,6 +2,12 @@
 
 All notable changes to dsh-balance-dock.
 
+## [1.2.4] - 2026
+
+### Changed
+- 设置弹窗：汇率状态行**跟随当前选择的货币实时切换**（`1 CNY ≈ x.xxxx 币种`，兑换基准始终为人民币）。
+- 货币下拉列表：**语言对应的默认货币排第一位**（如 English (UK) → GBP 在最前），其余货币随后。
+
 ## [1.2.3] - 2026
 
 ### Changed

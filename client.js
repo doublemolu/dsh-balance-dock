@@ -91,6 +91,13 @@ window.__ModuleLoader__.load({
     const LOCALES = { 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', en: 'en-US', 'en-US': 'en-US', 'en-GB': 'en-GB', de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR', ru: 'ru-RU' }
     const CURRENCY_OPTIONS = [['CNY', 'CNY ¥'], ['TWD', 'TWD NT$'], ['USD', 'USD $'], ['GBP', 'GBP £'], ['EUR', 'EUR €'], ['JPY', 'JPY ¥'], ['KRW', 'KRW ₩'], ['RUB', 'RUB ₽']]
     const LANGUAGE_OPTIONS = [['zh-CN', '简体中文'], ['zh-TW', '繁體中文'], ['en-US', 'English (US)'], ['en-GB', 'English (UK)'], ['de', 'Deutsch'], ['ja', '日本語'], ['ko', '한국어'], ['ru', 'Русский']]
+    // 货币下拉：语言对应的默认货币排第一位，兑换基准始终是人民币（CNY）
+    const currencyOptionsFor = (langId) => {
+      const preferred = LANG_CURRENCY[langId]
+      if (!preferred) return CURRENCY_OPTIONS
+      const prefEntry = CURRENCY_OPTIONS.find((o) => o[0] === preferred)
+      return prefEntry ? [prefEntry, ...CURRENCY_OPTIONS.filter((o) => o[0] !== preferred)] : CURRENCY_OPTIONS
+    }
 
     const symOf = { CNY: '¥', TWD: 'NT$', USD: '$', GBP: '£', EUR: '€', JPY: '¥', KRW: '₩', RUB: '₽' }
     const fmtInt = (v) => Math.round(v).toLocaleString('en-US')
@@ -382,7 +389,7 @@ window.__ModuleLoader__.load({
         React.createElement('div', { className: 'dsbd-modal', onClick: (e) => e.stopPropagation() },
           React.createElement('div', { className: 'dsbd-modal-title' }, t.modalTitle),
           selectField(t.fLang, form.lang || 'zh-CN', LANGUAGE_OPTIONS, (v) => setForm((f) => ({ ...f, lang: v, currency: LANG_CURRENCY[v] || f.currency }))),
-          selectField(t.fCurrency, form.currency || 'CNY', CURRENCY_OPTIONS, (v) => setField('currency', v)),
+          selectField(t.fCurrency, form.currency || 'CNY', currencyOptionsFor(form.lang || 'zh-CN'), (v) => setField('currency', v)),
           numField(t.fSegment + ' segmentBase', form.segmentBase, (e) => setField('segmentBase', parseFloat(e.target.value) || 0)),
           numField(t.fRed + ' redThreshold', form.redThreshold, (e) => setField('redThreshold', parseFloat(e.target.value) || 0)),
           numField(t.fWarnLow + ' warnLow', form.warnLow, (e) => setField('warnLow', parseFloat(e.target.value) || 0)),
@@ -390,8 +397,8 @@ window.__ModuleLoader__.load({
           React.createElement('div', { key: 'fxauto', className: 'dsbd-field' },
             React.createElement('span', { className: 'dsbd-field-k' }, t.fxAuto),
             React.createElement('span', { className: 'dsbd-v', style: { fontSize: '11px' } },
-              rates && rates.rates && rates.rates[displayCurrency]
-                ? ('1 CNY ≈ ' + rates.rates[displayCurrency].toFixed(4) + ' ' + displayCurrency + ' · ' + (rates.source === 'live' ? t.fxLive : t.fxFallback))
+              rates && rates.rates && form && rates.rates[form.currency || 'CNY']
+                ? ('1 CNY ≈ ' + rates.rates[form.currency || 'CNY'].toFixed(4) + ' ' + (form.currency || 'CNY') + ' · ' + (rates.source === 'live' ? t.fxLive : t.fxFallback))
                 : '…')),
           React.createElement('div', { className: 'dsbd-modal-title', style: { marginTop: '4px' } }, t.showSection),
           rowToggle('last', t.lastUsage),
