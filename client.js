@@ -26,7 +26,7 @@ window.__ModuleLoader__.load({
       '.dsbd-delta.down{color:var(--dsw-alias-state-error-primary)}',
       '.dsbd-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px}',
       '.dsbd-k{color:var(--dsw-alias-label-secondary);font-size:11px}',
-      '.dsbd-k.blue{color:var(--dsw-alias-brand-primary);font-weight:700}',
+      '.dsbd-k.blue{color:var(--dsw-static-deepseek-450,#5686fe);font-weight:700}',
       '.dsbd-v{font-size:12px;font-weight:500}',
       '.dsbd-div{height:1px;background:var(--dsw-alias-border-l1);margin:5px 0}',
       '.dsbd-note{font-size:11px}',
@@ -100,6 +100,7 @@ window.__ModuleLoader__.load({
       const [form, setForm] = React.useState(null)
       const [defaults, setDefaults] = React.useState(null)
       const [spinning, setSpinning] = React.useState(false)
+      const [fetchErr, setFetchErr] = React.useState(null)
       const prevBal = React.useRef(null)
 
       const lang = cfg && cfg.lang ? cfg.lang : 'zh-CN'
@@ -185,6 +186,7 @@ window.__ModuleLoader__.load({
             .then((r) => r.json())
             .then((r) => {
               if (!alive) return
+              setFetchErr(null)
               if (r && r.ok === true) {
                 const p = prevBal.current
                 if (p && p.ok === true && Math.abs(p.total - r.total) > 0.001) {
@@ -195,7 +197,7 @@ window.__ModuleLoader__.load({
               }
               setBalance(r)
             })
-            .catch(() => {})
+            .catch((e) => { if (alive) setFetchErr(String((e && e.message) || e)) })
         }
         tick()
         const timer = setInterval(tick, 15000)
@@ -299,6 +301,7 @@ window.__ModuleLoader__.load({
       if (warnText) rows.push(React.createElement('div', { key: 'warn', className: 'dsbd-note warn' }, warnText))
       if (overrun) rows.push(React.createElement('div', { key: 'over', className: 'dsbd-note err' }, t.overrun))
       if (balance && !ok) rows.push(React.createElement('div', { key: 'err', className: 'dsbd-note err' }, (balance.error ? t.fail + '：' + balance.error : t.fail)))
+      if (fetchErr !== null && !ok) rows.push(React.createElement('div', { key: 'fetherr', className: 'dsbd-note err' }, t.fail + '：' + fetchErr))
       if (updatedAt !== null && ok) rows.push(React.createElement('div', { key: 'meta', className: 'dsbd-meta' }, t.updated + ' ' + clock(updatedAt)))
 
       const fillSegs = []

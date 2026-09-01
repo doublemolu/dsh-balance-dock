@@ -2,6 +2,12 @@
 
 All notable changes to dsh-balance-dock.
 
+## [1.2.1] - 2026
+
+### Fixed
+- **蓝色标签修复**：`--dsw-alias-brand-primary` 在该主题中实际为中性色（非蓝色），改用真正的 DeepSeek 蓝 `--dsw-static-deepseek-450`。
+- **请求失败显式报错**：余额请求失败时卡片现在会显示具体错误文本（此前静默失败）。
+
 ## [1.2.0] - 2026
 
 ### Added
